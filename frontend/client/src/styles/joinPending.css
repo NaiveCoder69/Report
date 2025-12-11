@@ -1,0 +1,248 @@
+.pending-shell {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 16px;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+}
+
+.pending-box {
+  width: 100%;
+  max-width: 550px;
+  background: #ffffff;
+  border-radius: 24px;
+  box-shadow: 0 25px 50px rgba(15, 23, 42, 0.15);
+  overflow: hidden;
+}
+
+/* Header */
+.pending-header {
+  background: linear-gradient(135deg, #2563eb, #0b3d91);
+  color: white;
+  padding: 40px 30px 32px;
+  text-align: center;
+}
+
+.pending-badge {
+  margin-bottom: 16px;
+}
+
+.pending-brand {
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: 0.4px;
+}
+
+.pending-present {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  opacity: 0.9;
+  margin-top: 4px;
+}
+
+.pending-title {
+  font-weight: 600;
+  font-size: 28px;
+  margin: 16px 0 12px 0;
+}
+
+.pending-subtitle {
+  font-size: 15px;
+  opacity: 0.95;
+  margin: 0;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.6;
+}
+
+/* Content */
+.pending-content {
+  padding: 48px 40px;
+  text-align: center;
+}
+
+/* Spinner */
+.pending-spinner-wrapper {
+  margin-bottom: 32px;
+}
+
+.pending-spinner {
+  position: relative;
+  display: inline-block;
+}
+
+.pending-spinner-icon {
+  color: #2563eb;
+  width: 64px;
+  height: 64px;
+}
+
+.pending-spinner-dots {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 20px;
+  height: 20px;
+}
+
+.pending-spinner-dots div {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background: #2563eb;
+  border-radius: 50%;
+  opacity: 0.6;
+  animation: pendingDots 1.4s infinite ease-in-out;
+}
+
+.pending-spinner-dots div:nth-child(1) {
+  left: 0;
+  animation-delay: -0.32s;
+}
+
+.pending-spinner-dots div:nth-child(2) {
+  left: 50%;
+  margin-left: -3px;
+  animation-delay: -0.16s;
+}
+
+.pending-spinner-dots div:nth-child(3) {
+  right: 0;
+}
+
+@keyframes pendingDots {
+  0%, 80%, 100% {
+    transform: scale(0);
+  }
+  40% {
+    transform: scale(1);
+  }
+}
+
+/* Message */
+.pending-main-text {
+  font-size: 22px;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 12px;
+}
+
+.pending-subtext {
+  font-size: 15px;
+  color: #6b7280;
+  line-height: 1.6;
+  max-width: 400px;
+  margin: 0 auto 32px;
+}
+
+/* Status steps */
+.pending-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 32px 0;
+  gap: 24px;
+  position: relative;
+}
+
+.pending-status-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.pending-status-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 3px solid #e5e7eb;
+  position: relative;
+}
+
+.pending-status-circle::after {
+  content: '✓';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #10b981;
+  font-weight: bold;
+  font-size: 14px;
+  opacity: 1;
+}
+
+.pending-active .pending-status-circle {
+  background: #10b981;
+  border-color: #10b981;
+}
+
+.pending-waiting .pending-status-circle::after {
+  opacity: 0.3;
+}
+
+.pending-status-item span {
+  font-size: 13px;
+  font-weight: 500;
+  color: #6b7280;
+}
+
+.pending-active span {
+  color: #111827;
+}
+
+.pending-status-line {
+  height: 2px;
+  background: #e5e7eb;
+  flex: 1;
+  max-width: 80px;
+}
+
+/* Hint */
+.pending-hint {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.pending-hint-icon {
+  font-size: 20px;
+  margin-top: 2px;
+}
+
+.pending-hint p {
+  margin: 0;
+  font-size: 14px;
+  color: #475569;
+  line-height: 1.5;
+}
+
+/* Responsive */
+@media (max-width: 576px) {
+  .pending-shell {
+    padding: 20px 12px;
+  }
+  
+  .pending-content {
+    padding: 32px 24px;
+  }
+  
+  .pending-status {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .pending-status-line {
+    width: 2px;
+    height: 40px;
+    max-width: none;
+  }
+}

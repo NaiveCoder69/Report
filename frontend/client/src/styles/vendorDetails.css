@@ -1,0 +1,155 @@
+.vendor-details-shell {
+  min-height: calc(100vh - 64px);
+  margin-top: 64px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 24px 16px 32px;
+  background-color: #eef2f7;
+}
+
+.vendor-details-box {
+  width: 100%;
+  max-width: 1100px;
+  background: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12);
+  padding: 24px 30px 32px;
+}
+
+/* Header */
+.vendor-details-header {
+  margin-bottom: 20px;
+}
+
+.vendor-details-badge {
+  margin-bottom: 6px;
+}
+
+.vendor-details-brand {
+  font-weight: 700;
+  font-size: 18px;
+  color: #0b3d91;
+  letter-spacing: 0.4px;
+}
+
+.vendor-details-present {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  color: #6b7280;
+  margin-top: 2px;
+}
+
+.vendor-details-title {
+  font-weight: 600;
+  font-size: 26px;
+  color: #111827;
+  margin-top: 6px;
+}
+
+.vendor-details-subtitle {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+/* Cards */
+.vendor-card {
+  border-radius: 16px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
+}
+
+.vendor-card .row p {
+  margin-bottom: 6px;
+  font-size: 14px;
+  color: #374151;           /* same as labels elsewhere */
+}
+
+.vendor-card .card-body {
+  padding-top: 14px;
+  padding-bottom: 14px;
+}
+
+.vendor-section-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #0b3d91;
+  margin-bottom: 12px;
+}
+
+/* Contact labels */
+.vendor-label {
+  font-weight: 600;
+  color: #111827;
+}
+
+/* Financial chips */
+.vendor-summary-chip {
+  border-radius: 14px;
+  padding: 10px 14px;
+  background: #f3f4f6;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.vendor-summary-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #6b7280;
+}
+
+.vendor-summary-value {
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.vendor-summary-blue {
+  border-left: 4px solid #2563eb;
+}
+
+.vendor-summary-green {
+  border-left: 4px solid #16a34a;
+}
+
+.vendor-summary-orange {
+  border-left: 4px solid #f97316;
+}
+
+/* Tables */
+.vendor-table-wrapper {
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.vendor-table thead {
+  background-color: #f9fafb;
+}
+
+.vendor-table thead th {
+  font-size: 14px;
+  font-weight: 600;
+  color: #111827 !important;
+  text-align: center;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.vendor-table tbody td {
+  font-size: 14px;
+  text-align: center;
+  vertical-align: middle;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .vendor-details-shell {
+    padding: 16px 12px 24px;
+  }
+
+  .vendor-details-box {
+    padding: 20px 16px 24px;
+  }
+}

@@ -1,0 +1,210 @@
+.joinreq-shell {
+  min-height: calc(100vh - 64px);
+  margin-top: 64px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 24px 16px 32px;
+  background-color: #eef2f7;
+}
+
+.joinreq-box {
+  width: 100%;
+  max-width: 1200px;
+  background: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12);
+  padding: 24px 30px 32px;
+}
+
+/* Header */
+.joinreq-header {
+  margin-bottom: 20px;
+}
+
+.joinreq-badge {
+  margin-bottom: 6px;
+}
+
+.joinreq-brand {
+  font-weight: 700;
+  font-size: 18px;
+  color: #0b3d91;
+  letter-spacing: 0.4px;
+}
+
+.joinreq-present {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  color: #6b7280;
+  margin-top: 2px;
+}
+
+.joinreq-title {
+  font-weight: 600;
+  font-size: 26px;
+  color: #111827;
+  margin-bottom: 4px;
+}
+
+.joinreq-subtitle {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0;
+}
+
+/* Status banner */
+.joinreq-status-banner {
+  margin-bottom: 16px;
+  border-radius: 9999px;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.joinreq-status-success {
+  background: rgba(22, 163, 74, 0.08);
+  color: #15803d;
+  border: 1px solid rgba(22, 163, 74, 0.3);
+}
+
+.joinreq-status-error {
+  background: rgba(239, 68, 68, 0.08);
+  color: #b91c1c;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+/* Refresh button */
+.joinreq-refresh-btn {
+  border-radius: 9999px;
+  font-size: 13px;
+  padding: 6px 16px;
+}
+
+/* Loading */
+.joinreq-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  color: #6b7280;
+  font-size: 15px;
+}
+
+/* Empty state */
+.joinreq-empty {
+  text-align: center;
+  padding: 60px 40px;
+  color: #6b7280;
+}
+
+.joinreq-empty-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.joinreq-empty-title {
+  color: #374151;
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.joinreq-empty-subtitle {
+  font-size: 14px;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+/* Table card */
+.joinreq-table-card {
+  margin-top: 8px;
+}
+
+.joinreq-table-wrapper {
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
+}
+
+.joinreq-table thead {
+  background-color: #f9fafb;
+}
+
+.joinreq-table thead th {
+  font-size: 14px;
+  font-weight: 600;
+  color: #111827 !important;
+  text-align: center;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.joinreq-table tbody td {
+  font-size: 14px;
+  vertical-align: middle;
+}
+
+/* User name with avatar */
+.joinreq-user-name {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.joinreq-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #2563eb, #0b3d91);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+/* Role select */
+.joinreq-role-select {
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  font-size: 13px;
+  padding: 6px 10px;
+  background: white;
+}
+
+/* Date formatting */
+.joinreq-date {
+  text-align: center;
+}
+
+.joinreq-date small {
+  opacity: 0.7;
+  font-weight: 500;
+}
+
+/* Action buttons */
+.joinreq-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.joinreq-approve-btn, .joinreq-reject-btn {
+  border-radius: 9999px !important;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 6px 16px;
+  min-height: 34px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .joinreq-shell {
+    padding: 16px 12px 24px;
+  }
+  .joinreq-box {
+    padding: 20px 16px 24px;
+  }
+}

@@ -1,0 +1,200 @@
+.invite-shell {
+  min-height: calc(100vh - 64px);
+  margin-top: 64px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 24px 16px 32px;
+  background-color: #eef2f7;
+}
+
+.invite-box {
+  width: 100%;
+  max-width: 800px;
+  background: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12);
+  padding: 24px 30px 32px;
+}
+
+/* Header */
+.invite-header {
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.invite-badge {
+  margin-bottom: 8px;
+}
+
+.invite-brand {
+  font-weight: 700;
+  font-size: 18px;
+  color: #0b3d91;
+  letter-spacing: 0.4px;
+}
+
+.invite-present {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  color: #6b7280;
+  margin-top: 2px;
+}
+
+.invite-title {
+  font-weight: 600;
+  font-size: 26px;
+  color: #111827;
+  margin: 8px 0 4px 0;
+}
+
+.invite-subtitle {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0;
+}
+
+/* Status banner */
+.invite-status-banner {
+  margin-bottom: 16px;
+  border-radius: 9999px;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.invite-status-success {
+  background: rgba(22, 163, 74, 0.08);
+  color: #15803d;
+  border: 1px solid rgba(22, 163, 74, 0.3);
+}
+
+.invite-status-error {
+  background: rgba(239, 68, 68, 0.08);
+  color: #b91c1c;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+/* Loading */
+.invite-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  color: #6b7280;
+}
+
+/* Main card */
+.invite-card {
+  background: #f8fafc;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  padding: 24px;
+}
+
+.invite-section-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #0b3d91;
+  margin-bottom: 16px;
+}
+
+/* Info grid */
+.invite-info-grid {
+  display: grid;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.invite-info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.invite-info-item label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.invite-info-value {
+  font-size: 15px;
+  font-weight: 500;
+  color: #1e293b;
+  word-break: break-all;
+  min-height: 20px;
+}
+
+.invite-link-text {
+  color: #2563eb;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.invite-link-text:hover {
+  text-decoration: underline;
+}
+
+.invite-missing {
+  color: #ef4444;
+  font-style: italic;
+}
+
+.invite-expired-badge {
+  display: inline-block;
+  background: #fee2e2;
+  color: #dc2626;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 600;
+  margin-left: 8px;
+}
+
+/* Action section */
+.invite-action-section {
+  text-align: center;
+  padding-top: 20px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.invite-generate-btn {
+  border-radius: 9999px;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 12px 28px;
+  background: linear-gradient(135deg, #2563eb, #0b3d91);
+  border: none;
+  min-height: 48px;
+}
+
+.invite-generate-btn:hover {
+  background: linear-gradient(135deg, #1d4ed8, #0b3d91);
+}
+
+.invite-action-note {
+  margin-top: 12px;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+/* Empty state */
+.invite-empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: #6b7280;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .invite-shell {
+    padding: 16px 12px 24px;
+  }
+  .invite-box {
+    padding: 20px 16px 24px;
+  }
+}

@@ -1,0 +1,165 @@
+.inviteinfo-card {
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
+  padding: 24px;
+  margin: 20px 0;
+}
+
+/* Header */
+.inviteinfo-header {
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.inviteinfo-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #0b3d91;
+  margin: 0 0 4px 0;
+}
+
+.inviteinfo-subtitle {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0;
+}
+
+/* Content */
+.inviteinfo-content {
+  margin-bottom: 20px;
+}
+
+.inviteinfo-item {
+  margin-bottom: 20px;
+}
+
+.inviteinfo-item:last-child {
+  margin-bottom: 0;
+}
+
+.inviteinfo-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.inviteinfo-value-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.inviteinfo-code {
+  background: #f8fafc;
+  color: #1e293b;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 16px;
+  font-weight: 600;
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  min-width: 120px;
+  text-align: center;
+  letter-spacing: 1px;
+}
+
+.inviteinfo-link-wrapper {
+  flex: 1;
+  min-width: 300px;
+}
+
+.inviteinfo-link {
+  color: #2563eb;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  word-break: break-all;
+  padding: 12px 16px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  display: block;
+  line-height: 1.4;
+  transition: all 0.2s;
+}
+
+.inviteinfo-link:hover {
+  background: #f1f5f9;
+  text-decoration: underline;
+  color: #1d4ed8;
+}
+
+/* Copy buttons */
+.inviteinfo-copy-btn {
+  border-radius: 9999px !important;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 8px 16px;
+  min-height: 40px;
+  border: 1px solid #d1d5db !important;
+  transition: all 0.2s;
+}
+
+.inviteinfo-copy-btn:hover {
+  border-color: #2563eb !important;
+  background-color: #eff6ff !important;
+  color: #2563eb !important;
+}
+
+.inviteinfo-copy-btn.copied {
+  background: linear-gradient(135deg, #10b981, #059669) !important;
+  border-color: #059669 !important;
+  color: white !important;
+  animation: pulse 0.3s ease-in-out;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+/* Footer */
+.inviteinfo-footer {
+  padding-top: 16px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.inviteinfo-hint {
+  font-size: 13px;
+  color: #6b7280;
+  text-align: center;
+  background: #f8fafc;
+  padding: 12px 16px;
+  border-radius: 10px;
+  border-left: 4px solid #10b981;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .inviteinfo-card {
+    padding: 20px;
+    margin: 16px;
+  }
+  
+  .inviteinfo-value-section {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .inviteinfo-link-wrapper {
+    min-width: auto;
+    order: 2;
+  }
+  
+  .inviteinfo-copy-btn {
+    order: 1;
+  }
+}

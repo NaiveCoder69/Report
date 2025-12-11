@@ -1,0 +1,190 @@
+.joinform-shell {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 40px 16px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.joinform-box {
+  width: 100%;
+  max-width: 500px;
+  background: #ffffff;
+  border-radius: 24px;
+  box-shadow: 0 25px 50px rgba(15, 23, 42, 0.25);
+  overflow: hidden;
+}
+
+/* Header */
+.joinform-header {
+  background: linear-gradient(135deg, #2563eb, #0b3d91);
+  color: white;
+  padding: 32px 30px 24px;
+  text-align: center;
+}
+
+.joinform-badge {
+  margin-bottom: 12px;
+}
+
+.joinform-brand {
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: 0.4px;
+}
+
+.joinform-present {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  opacity: 0.9;
+  margin-top: 4px;
+}
+
+.joinform-title {
+  font-weight: 600;
+  font-size: 28px;
+  margin: 12px 0 8px 0;
+}
+
+.joinform-subtitle {
+  font-size: 15px;
+  opacity: 0.95;
+  margin: 0;
+}
+
+/* Status banner */
+.joinform-status-banner {
+  margin: 0 30px 24px;
+  border-radius: 12px;
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.joinform-status-success {
+  background: rgba(22, 163, 74, 0.1);
+  color: #15803d;
+  border: 1px solid rgba(22, 163, 74, 0.3);
+}
+
+.joinform-status-error {
+  background: rgba(239, 68, 68, 0.1);
+  color: #b91c1c;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+/* Form card */
+.joinform-card {
+  padding: 32px 30px 24px;
+}
+
+/* Form groups */
+.joinform-group {
+  margin-bottom: 24px;
+}
+
+.joinform-label {
+  font-weight: 600;
+  color: #0b3d91;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.joinform-control {
+  border-radius: 12px;
+  border: 2px solid #e5e7eb;
+  padding: 12px 16px;
+  font-size: 15px;
+  transition: all 0.2s;
+  background: #fafbfc;
+}
+
+.joinform-control:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  background: white;
+}
+
+.joinform-hint {
+  font-size: 13px;
+  color: #6b7280;
+  margin-top: 6px;
+}
+
+/* Divider */
+.joinform-divider {
+  text-align: center;
+  margin: 24px 0;
+  position: relative;
+}
+
+.joinform-divider::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: #e5e7eb;
+}
+
+.joinform-divider-text {
+  background: white;
+  color: #6b7280;
+  font-weight: 500;
+  padding: 0 16px;
+  position: relative;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Submit button */
+.joinform-submit-btn {
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 15px;
+  padding: 14px 24px;
+  background: linear-gradient(135deg, #2563eb, #0b3d91);
+  border: none;
+  height: 52px;
+  margin-bottom: 20px;
+  transition: all 0.2s;
+}
+
+.joinform-submit-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #1d4ed8, #0b3d91);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 25px rgba(37, 99, 235, 0.3);
+}
+
+.joinform-submit-btn:disabled {
+  opacity: 0.7;
+}
+
+/* Footer */
+.joinform-footer {
+  text-align: center;
+}
+
+.joinform-note {
+  font-size: 13px;
+  color: #6b7280;
+  margin: 0;
+  font-style: italic;
+}
+
+/* Responsive */
+@media (max-width: 576px) {
+  .joinform-shell {
+    padding: 20px 12px;
+  }
+  
+  .joinform-header,
+  .joinform-card {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+}

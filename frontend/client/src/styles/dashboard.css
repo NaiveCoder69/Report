@@ -1,0 +1,152 @@
+.dash-shell {
+  min-height: calc(100vh - 64px);
+  margin-top: 64px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 24px 16px 32px;
+  background-color: #eef2f7;
+}
+
+.dash-box {
+  width: 100%;
+  max-width: 1200px;
+  background-color: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12);
+  padding: 24px 20px 28px;
+}
+
+@media (min-width: 992px) {
+  .dash-box {
+    padding: 28px 32px 32px;
+  }
+}
+
+.dash-header {
+  margin-bottom: 18px;
+}
+
+.dash-badge {
+  margin-bottom: 6px;
+}
+
+.dash-brand {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  color: #0b3d91;
+}
+
+.dash-present {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  color: #6b7280;
+  margin-top: 2px;
+}
+
+.dash-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 4px;
+}
+
+.dash-subtitle {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+/* States */
+.dash-loading,
+.dash-center-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 240px;
+  font-size: 14px;
+  color: #4b5563;
+}
+
+/* Project cards */
+.dash-project-card {
+  border-radius: 14px;
+  border: 1px solid #e5e7eb;
+}
+
+.dash-project-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 10px;
+}
+
+.dash-project-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 16px;
+  font-size: 13px;
+}
+
+.dash-label {
+  display: block;
+  color: #6b7280;
+}
+
+.dash-value {
+  display: block;
+  font-weight: 600;
+}
+
+.dash-green {
+  color: #15803d;
+}
+
+.dash-red {
+  color: #b91c1c;
+}
+
+.dash-blue {
+  color: #2563eb;
+}
+
+.dash-total-row {
+  grid-column: 1 / -1;
+  margin-top: 4px;
+  padding-top: 4px;
+  border-top: 1px dashed #e5e7eb;
+}
+
+.dash-total {
+  color: #111827;
+}
+
+/* Table */
+.dash-table-card {
+  border-radius: 14px;
+  border: 1px solid #e5e7eb;
+}
+
+.dash-table thead {
+  background-color: #f3f4f6;
+}
+
+.dash-table thead th {
+  font-size: 13px;
+  font-weight: 600;
+  color: #4b5563;
+}
+
+.dash-table tbody td {
+  font-size: 13px;
+}
+
+/* Empty state */
+.dash-empty-card {
+  border-radius: 14px;
+  border: 1px dashed #cbd5f5;
+  background-color: #f9fafb;
+  text-align: center;
+  padding: 32px 24px;
+}

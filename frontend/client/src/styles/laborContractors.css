@@ -1,0 +1,241 @@
+/* Page shell */
+.labor-shell {
+  min-height: calc(100vh - 64px);
+  margin-top: 64px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 24px 16px 32px;
+  background-color: #eef2f7;
+}
+
+/* Main card */
+.labor-box {
+  width: 100%;
+  max-width: 1100px;
+  background: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12);
+  padding: 24px 30px 32px;
+}
+
+/* Header */
+.labor-header {
+  margin-bottom: 18px;
+}
+
+.labor-badge {
+  margin-bottom: 6px;
+}
+
+.labor-brand {
+  font-weight: 700;
+  font-size: 18px;
+  color: #0b3d91;
+  letter-spacing: 0.4px;
+}
+
+.labor-present {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  color: #6b7280;
+  margin-top: 2px;
+}
+
+.labor-title {
+  font-weight: 600;
+  font-size: 26px;
+  color: #111827;
+}
+
+.labor-subtitle {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+/* Add button */
+.labor-add-btn {
+  border-radius: 9999px;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #2563eb, #0b3d91);
+  border: none;
+  color: #ffffff;
+}
+
+.labor-add-btn:hover {
+  background: linear-gradient(135deg, #1d4ed8, #0b3d91);
+  color: #ffffff;
+}
+
+/* Table card */
+.labor-table-card {
+  margin-top: 8px;
+}
+
+.labor-table-wrapper {
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.labor-table thead {
+  background-color: #f9fafb;
+}
+
+.labor-table thead th {
+  font-size: 14px;
+  font-weight: 600;
+  color: #111827 !important;
+  text-align: center;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.labor-table tbody td {
+  font-size: 14px;
+  text-align: center;
+  vertical-align: middle;
+}
+
+/* Links & action buttons */
+.labor-link {
+  color: #2563eb;
+  text-decoration: none;
+}
+
+.labor-link:hover {
+  text-decoration: underline;
+}
+
+.labor-view-btn {
+  border-radius: 9999px;
+  font-size: 13px;
+  padding: 6px 14px;
+}
+
+.labor-delete-btn {
+  border-radius: 6px !important;
+  font-weight: 500;
+  font-size: 13px;
+  padding: 6px 12px;
+}
+
+/* Modal width & overall card */
+.labor-modal .modal-dialog {
+  max-width: 640px;
+}
+
+.labor-modal .modal-content {
+  border-radius: 20px;
+  border: none;
+  box-shadow: 0 22px 45px rgba(15, 23, 42, 0.28);
+  overflow: hidden;
+}
+
+/* Modal header */
+.labor-modal-header {
+  background: linear-gradient(135deg, #2563eb, #0b3d91);
+  border-radius: 20px 20px 0 0 !important;
+  color: #ffffff;
+  border-bottom: none;
+  padding: 14px 22px;
+}
+
+.labor-modal-title {
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 18px;
+}
+
+/* Modal body */
+.labor-modal-body {
+  background-color: #f3f4f6;
+  padding: 18px 20px 16px;
+}
+
+/* Inner white form card */
+.labor-modal-body form {
+  background-color: #ffffff;
+  border-radius: 14px;
+  border: 1px solid #e5e7eb;
+  padding: 16px 18px 14px;
+}
+
+/* Form fields */
+.labor-form-group {
+  margin-bottom: 0.9rem;
+}
+
+.labor-form-label {
+  font-weight: 500;
+  color: #374151;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.labor-form-control {
+  border-radius: 10px;
+  border: 1px solid #d1d5db;
+  padding: 9px 11px;
+  font-size: 14px;
+}
+
+.labor-form-control:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+/* Modal buttons */
+.labor-modal-save-btn {
+  border-radius: 9999px;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 8px 22px;
+  background: linear-gradient(135deg, #2563eb, #0b3d91);
+  border: none;
+  color: #ffffff;
+}
+
+.labor-modal-save-btn:hover {
+  background: linear-gradient(135deg, #1d4ed8, #0b3d91);
+  color: #ffffff;
+}
+
+.labor-modal .btn-outline-secondary {
+  border-radius: 9999px;
+  font-size: 14px;
+  padding: 8px 18px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .labor-shell {
+    padding: 16px 12px 24px;
+  }
+
+  .labor-box {
+    padding: 20px 16px 24px;
+  }
+}
+
+
+.labor-status-banner {
+  margin-bottom: 12px;
+  border-radius: 9999px;
+  padding: 8px 14px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.labor-status-success {
+  background: rgba(22, 163, 74, 0.08);
+  color: #15803d;
+  border: 1px solid rgba(22, 163, 74, 0.3);
+}
+
+.labor-status-error {
+  background: rgba(239, 68, 68, 0.08);
+  color: #b91c1c;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}

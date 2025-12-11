@@ -1,0 +1,171 @@
+.bills-shell {
+  min-height: calc(100vh - 64px);
+  margin-top: 64px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 24px 16px 32px;
+  background-color: #eef2f7;
+}
+
+.bills-box {
+  width: 100%;
+  max-width: 1100px;
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12);
+  padding: 24px 30px 32px;
+}
+
+.bills-header {
+  margin-bottom: 28px;
+}
+
+.bills-badge {
+  margin-bottom: 6px;
+}
+
+.bills-brand {
+  font-weight: 700;
+  font-size: 18px;
+  color: #0b3d91;
+  letter-spacing: 0.4px;
+}
+
+.bills-present {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  color: #6b7280;
+  margin-top: 2px;
+}
+
+.bills-title {
+  font-weight: 600;
+  font-size: 28px;
+  color: #111827;
+  margin-top: 6px;
+}
+
+.bills-subtitle {
+  font-size: 14px;
+  color: #6b7280;
+  margin-bottom: 16px;
+}
+
+.bills-button {
+  border-radius: 9999px;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 10px 18px;
+  background: linear-gradient(135deg, #2563eb, #0b3d91);
+  border: none;
+}
+
+.bills-button:hover {
+  background: linear-gradient(135deg, #1d4ed8, #0b3d91);
+}
+
+/* TABLE */
+
+.bills-table thead {
+  background-color: #f9fafb; /* light background */
+}
+
+.bills-table thead th {
+  font-size: 14px;
+  font-weight: 600;
+  color: #111827 !important; /* dark text, clearly visible */
+  text-align: center;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.bills-table tbody td {
+  font-size: 14px;
+  text-align: center;
+  vertical-align: middle;
+}
+
+/* row delete button in table – simple red like other pages */
+
+.bills-delete-btn {
+  border-radius: 6px !important;
+  font-weight: 500;
+  font-size: 13px;
+  padding: 6px 12px;
+}
+
+/* ADD BILL MODAL (blue theme) */
+
+.bills-modal-header {
+  background: linear-gradient(135deg, #2563eb, #0b3d91);
+  border-radius: 14px 14px 0 0 !important;
+  color: white !important;
+  border-bottom: none;
+}
+
+.bills-modal-title {
+  color: white !important;
+  font-weight: 600;
+}
+
+.bills-modal-body {
+  padding: 24px;
+}
+
+.bills-modal-form-label {
+  font-weight: 500;
+  color: #374151;
+  font-size: 14px;
+  margin-bottom: 6px;
+}
+
+.bills-modal-form-control {
+  border-radius: 10px;
+  border: 1px solid #d1d5db;
+  padding: 10px 12px;
+  font-size: 14px;
+}
+
+.bills-modal-form-control:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.bills-form-group {
+  margin-bottom: 1.5rem;
+}
+
+/* DELETE CONFIRM MODAL (red theme like other delete popups) */
+
+.bills-delete-modal-header {
+  background: linear-gradient(135deg, #dc2626, #991b1b);
+  border-radius: 14px 14px 0 0 !important;
+  color: #ffffff;
+  border-bottom: none;
+}
+
+.bills-delete-modal-title {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.bills-delete-modal-body {
+  padding: 20px 24px;
+  text-align: left;
+}
+
+.bills-delete-modal-btn {
+  border-radius: 9999px;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 8px 22px;
+  background: linear-gradient(135deg, #dc2626, #991b1b);
+  border: none;
+  color: #ffffff;
+}
+
+.bills-delete-modal-btn:hover {
+  background: linear-gradient(135deg, #b91c1c, #7f1d1d);
+  color: #ffffff;
+}

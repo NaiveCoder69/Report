@@ -28,7 +28,10 @@ const { errorHandler } = require('./middleware/errorMiddleware');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
 const MONGO_URI = process.env.MONGO_URI;
 
 // Create HTTP server from Express app

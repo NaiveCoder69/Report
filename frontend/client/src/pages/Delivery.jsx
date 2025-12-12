@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Form, Button, Table, Row, Col, Modal, Spinner } from "react-bootstrap";
-import { io } from "socket.io-client";
+// import { io } from "socket.io-client";
 import "../styles/delivery.css";
 
 // Base URL: from env in production, fallback to localhost for dev
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
-// Connect socket to your backend
-const socket = io(API_BASE_URL);
+// Socket disabled for now in deployed version
+// const socket = io(API_BASE_URL);
 
 const Delivery = () => {
   const [formData, setFormData] = useState({
@@ -57,18 +57,18 @@ const Delivery = () => {
     fetchDropdowns();
     fetchDeliveries();
 
-    socket.on("addMaterialDelivery", (newDelivery) => {
-      setDeliveries((prev) => {
-        const filtered = prev.filter((d) => d._id !== newDelivery._id);
-        const next = [newDelivery, ...filtered];
-        // sort by date desc
-        return next.slice().sort((a, b) => new Date(b.date) - new Date(a.date));
-      });
-    });
+    // Real-time socket updates disabled in deployed version
+    // socket.on("addMaterialDelivery", (newDelivery) => {
+    //   setDeliveries((prev) => {
+    //     const filtered = prev.filter((d) => d._id !== newDelivery._id);
+    //     const next = [newDelivery, ...filtered];
+    //     return next.slice().sort((a, b) => new Date(b.date) - new Date(a.date));
+    //   });
+    // });
 
-    return () => {
-      socket.off("addMaterialDelivery");
-    };
+    // return () => {
+    //   socket.off("addMaterialDelivery");
+    // };
   }, []);
 
   const fetchDropdowns = async () => {

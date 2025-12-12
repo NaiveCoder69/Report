@@ -1,14 +1,9 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Form, Button, Table, Row, Col, Modal, Spinner } from "react-bootstrap";
-// import { io } from "socket.io-client";
 import "../styles/delivery.css";
 
-// Base URL: from env in production, fallback to localhost for dev
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ;
-
-// Socket disabled for now in deployed version
-// const socket = io(API_BASE_URL);
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const Delivery = () => {
   const [formData, setFormData] = useState({
@@ -48,7 +43,6 @@ const Delivery = () => {
   const [toDate, setToDate] = useState("");
 
   const token = localStorage.getItem("token");
-
   const config = {
     headers: { Authorization: `Bearer ${token}` },
   };
@@ -56,19 +50,6 @@ const Delivery = () => {
   useEffect(() => {
     fetchDropdowns();
     fetchDeliveries();
-
-    // Real-time socket updates disabled in deployed version
-    // socket.on("addMaterialDelivery", (newDelivery) => {
-    //   setDeliveries((prev) => {
-    //     const filtered = prev.filter((d) => d._id !== newDelivery._id);
-    //     const next = [newDelivery, ...filtered];
-    //     return next.slice().sort((a, b) => new Date(b.date) - new Date(a.date));
-    //   });
-    // });
-
-    // return () => {
-    //   socket.off("addMaterialDelivery");
-    // };
   }, []);
 
   const fetchDropdowns = async () => {
@@ -78,26 +59,27 @@ const Delivery = () => {
         axios.get(`${API_BASE_URL}/api/vendors`, config),
         axios.get(`${API_BASE_URL}/api/materials`, config),
       ]);
-      setProjects(projectRes.data || []);
-      setVendors(vendorRes.data || []);
-      setMaterials(materialRes.data || []);
+      setProjects(Array.isArray(projectRes.data) ? projectRes.data : []);
+      setVendors(Array.isArray(vendorRes.data) ? vendorRes.data : []);
+      setMaterials(Array.isArray(materialRes.data) ? materialRes.data : []);
     } catch (err) {
       console.error("Dropdown fetch error:", err);
+      setProjects([]);
+      setVendors([]);
+      setMaterials([]);
     }
   };
 
   const fetchDeliveries = async () => {
     try {
-      const res = await axios.get(
-        `${API_BASE_URL}/api/material-deliveries`,
-        config
-      );
+      const res = await axios.get(`${API_BASE_URL}/api/material-deliveries`, config);
       const sorted = Array.isArray(res.data)
         ? res.data.slice().sort((a, b) => new Date(b.date) - new Date(a.date))
         : [];
       setDeliveries(sorted);
     } catch (err) {
       console.error("Deliveries fetch error:", err);
+      setDeliveries([]);
     }
   };
 
@@ -114,11 +96,7 @@ const Delivery = () => {
       rate: Number(formData.rate),
     };
     try {
-      const response = await axios.post(
-        `${API_BASE_URL}/api/material-deliveries`,
-        payload,
-        config
-      );
+      const response = await axios.post(`${API_BASE_URL}/api/material-deliveries`, payload, config);
       const newDelivery = response.data;
 
       setDeliveries((prev) => {
@@ -150,13 +128,8 @@ const Delivery = () => {
     if (!deliveryToDelete) return;
     setLoading(true);
     try {
-      await axios.delete(
-        `${API_BASE_URL}/api/material-deliveries/${deliveryToDelete._id}`,
-        config
-      );
-      setDeliveries((prev) =>
-        prev.filter((d) => d._id !== deliveryToDelete._id)
-      );
+      await axios.delete(`${API_BASE_URL}/api/material-deliveries/${deliveryToDelete._id}`, config);
+      setDeliveries((prev) => prev.filter((d) => d._id !== deliveryToDelete._id));
       setShowConfirmModal(false);
       setDeliveryToDelete(null);
     } catch (err) {
@@ -168,15 +141,14 @@ const Delivery = () => {
   };
 
   // ----- Edit logic -----
-
   const openEditModal = (delivery) => {
     setEditingDelivery(delivery);
     setEditData({
-      project: delivery.project?._id || delivery.project,
-      vendor: delivery.vendor?._id || delivery.vendor,
-      material: delivery.material?._id || delivery.material,
-      quantity: delivery.quantity,
-      rate: delivery.rate,
+      project: delivery.project?._id || delivery.project || "",
+      vendor: delivery.vendor?._id || delivery.vendor || "",
+      material: delivery.material?._id || delivery.material || "",
+      quantity: delivery.quantity || "",
+      rate: delivery.rate || "",
       date: delivery.date ? delivery.date.substring(0, 10) : "",
     });
     setShowEditModal(true);
@@ -198,11 +170,7 @@ const Delivery = () => {
         rate: Number(editData.rate),
       };
 
-      const res = await axios.put(
-        `${API_BASE_URL}/api/material-deliveries/${editingDelivery._id}`,
-        payload,
-        config
-      );
+      const res = await axios.put(`${API_BASE_URL}/api/material-deliveries/${editingDelivery._id}`, payload, config);
 
       const updated = res.data;
 
@@ -222,8 +190,7 @@ const Delivery = () => {
   };
 
   // ----- Filtering (project + date range) -----
-
-  const filteredDeliveries = deliveries.filter((d) => {
+  const filteredDeliveries = (deliveries || []).filter((d) => {
     const dDate = new Date(d.date);
 
     if (projectFilter && (d.project?._id || d.project) !== projectFilter) {
@@ -268,7 +235,7 @@ const Delivery = () => {
                     className="delivery-form-control"
                   >
                     <option value="">Select Project</option>
-                    {projects.map((p) => (
+                    {(projects || []).map((p) => (
                       <option key={p._id} value={p._id}>
                         {p.name}
                       </option>
@@ -288,7 +255,7 @@ const Delivery = () => {
                     className="delivery-form-control"
                   >
                     <option value="">Select Vendor</option>
-                    {vendors.map((v) => (
+                    {(vendors || []).map((v) => (
                       <option key={v._id} value={v._id}>
                         {v.name}
                       </option>
@@ -308,7 +275,7 @@ const Delivery = () => {
                     className="delivery-form-control"
                   >
                     <option value="">Select Material</option>
-                    {materials.map((m) => (
+                    {(materials || []).map((m) => (
                       <option key={m._id} value={m._id}>
                         {m.name}
                       </option>
@@ -386,7 +353,7 @@ const Delivery = () => {
                 onChange={(e) => setProjectFilter(e.target.value)}
               >
                 <option value="">All projects</option>
-                {projects.map((p) => (
+                {(projects || []).map((p) => (
                   <option key={p._id} value={p._id}>
                     {p.name}
                   </option>
@@ -435,8 +402,8 @@ const Delivery = () => {
                 </tr>
               </thead>
               <tbody>
-                {filteredDeliveries.length > 0 ? (
-                  filteredDeliveries.map((d, i) => (
+                {(filteredDeliveries || []).length > 0 ? (
+                  (filteredDeliveries || []).map((d, i) => (
                     <tr key={d._id}>
                       <td>{i + 1}</td>
                       <td>{d.project?.name || "N/A"}</td>
@@ -542,7 +509,7 @@ const Delivery = () => {
                 required
               >
                 <option value="">Select Project</option>
-                {projects.map((p) => (
+                {(projects || []).map((p) => (
                   <option key={p._id} value={p._id}>
                     {p.name}
                   </option>
@@ -559,7 +526,7 @@ const Delivery = () => {
                 required
               >
                 <option value="">Select Vendor</option>
-                {vendors.map((v) => (
+                {(vendors || []).map((v) => (
                   <option key={v._id} value={v._id}>
                     {v.name}
                   </option>
@@ -576,7 +543,7 @@ const Delivery = () => {
                 required
               >
                 <option value="">Select Material</option>
-                {materials.map((m) => (
+                {(materials || []).map((m) => (
                   <option key={m._id} value={m._id}>
                     {m.name}
                   </option>

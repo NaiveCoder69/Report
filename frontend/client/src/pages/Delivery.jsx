@@ -4,8 +4,11 @@ import { Form, Button, Table, Row, Col, Modal, Spinner } from "react-bootstrap";
 import { io } from "socket.io-client";
 import "../styles/delivery.css";
 
+// Base URL: from env in production, fallback to localhost for dev
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
+
 // Connect socket to your backend
-const socket = io("http://localhost:5000");
+const socket = io(API_BASE_URL);
 
 const Delivery = () => {
   const [formData, setFormData] = useState({
@@ -71,13 +74,13 @@ const Delivery = () => {
   const fetchDropdowns = async () => {
     try {
       const [projectRes, vendorRes, materialRes] = await Promise.all([
-        axios.get("http://localhost:5000/api/projects", config),
-        axios.get("http://localhost:5000/api/vendors", config),
-        axios.get("http://localhost:5000/api/materials", config),
+        axios.get(`${API_BASE_URL}/api/projects`, config),
+        axios.get(`${API_BASE_URL}/api/vendors`, config),
+        axios.get(`${API_BASE_URL}/api/materials`, config),
       ]);
-      setProjects(projectRes.data);
-      setVendors(vendorRes.data);
-      setMaterials(materialRes.data);
+      setProjects(projectRes.data || []);
+      setVendors(vendorRes.data || []);
+      setMaterials(materialRes.data || []);
     } catch (err) {
       console.error("Dropdown fetch error:", err);
     }
@@ -86,10 +89,10 @@ const Delivery = () => {
   const fetchDeliveries = async () => {
     try {
       const res = await axios.get(
-        "http://localhost:5000/api/material-deliveries",
+        `${API_BASE_URL}/api/material-deliveries`,
         config
       );
-      const sorted = res.data
+      const sorted = Array.isArray(res.data)
         ? res.data.slice().sort((a, b) => new Date(b.date) - new Date(a.date))
         : [];
       setDeliveries(sorted);
@@ -112,7 +115,7 @@ const Delivery = () => {
     };
     try {
       const response = await axios.post(
-        "http://localhost:5000/api/material-deliveries",
+        `${API_BASE_URL}/api/material-deliveries`,
         payload,
         config
       );
@@ -148,7 +151,7 @@ const Delivery = () => {
     setLoading(true);
     try {
       await axios.delete(
-        `http://localhost:5000/api/material-deliveries/${deliveryToDelete._id}`,
+        `${API_BASE_URL}/api/material-deliveries/${deliveryToDelete._id}`,
         config
       );
       setDeliveries((prev) =>
@@ -196,7 +199,7 @@ const Delivery = () => {
       };
 
       const res = await axios.put(
-        `http://localhost:5000/api/material-deliveries/${editingDelivery._id}`,
+        `${API_BASE_URL}/api/material-deliveries/${editingDelivery._id}`,
         payload,
         config
       );

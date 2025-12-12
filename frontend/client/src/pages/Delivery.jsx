@@ -5,7 +5,7 @@ import { Form, Button, Table, Row, Col, Modal, Spinner } from "react-bootstrap";
 import "../styles/delivery.css";
 
 // Base URL: from env in production, fallback to localhost for dev
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ;
 
 // Socket disabled for now in deployed version
 // const socket = io(API_BASE_URL);

@@ -29,47 +29,34 @@ const { errorHandler } = require('./middleware/errorMiddleware');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
-const MONGO_URI = process.env.MONGO_URI;
-
-// Create HTTP server from Express app
+// Create main HTTP server
 const server = http.createServer(app);
 
-// Initialize Socket.IO server
+// Initialize Socket.IO
 const io = new Server(server, {
   cors: {
-    origin: ['http://localhost:5173'],  // Adjust to your frontend URL or '*'
+    origin: "*",
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    credentials: true,
   },
 });
 
-// Middleware to make io accessible in routes/controllers
+// Attach io to app
 app.set('io', io);
 
-// Socket.IO connection event
+// Socket events
 io.on("connection", (socket) => {
-  socket.on("disconnect", () => {
-    // handle user disconnect if needed
-  });
+  socket.on("disconnect", () => { });
 });
 
-// --- MIDDLEWARE ---
-app.use(cors({
-  origin: ['http://localhost:5173'], // Allow your React frontend
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  credentials: true
-}));
-
+// Middlewares
+app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// --- STATIC FILES (Uploads) ---
+// Static uploads folder
 app.use('/uploads', express.static(path.join(__dirname, process.env.UPLOAD_DIR || 'uploads')));
 
-// --- API ROUTES ---
+// API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/companies', companyRoutes);
 app.use('/api/projects', projectRoutes);
@@ -87,32 +74,23 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/material-deliveries', materialDeliveryRoutes);
 
-// --- SERVE FRONTEND (SPA) ---
-// Update this path to your React app's build output folder
-const frontendPath = path.join(__dirname, "../frontend/client/dist");
+// REMOVE frontend serving (Vercel will handle it)
 
-app.use(express.static(frontendPath));
-
-// SPA fallback: serve index.html for all other non-API routes
-app.get("*", (req, res) => {
-  res.sendFile(path.join(frontendPath, "index.html"));
-});
-
-// --- ROOT TEST ROUTE (optional) ---
+// Basic root route
 app.get('/', (req, res) => {
-  res.send('✅ Construction Material Management Backend Running');
+  res.send('🚀 Backend running successfully on Render');
 });
 
-// --- ERROR HANDLER ---
+// Error Handler
 app.use(errorHandler);
 
-// --- DATABASE CONNECTION ---
-mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+// Connect to MongoDB and start server
+mongoose.connect(process.env.MONGO_URI)
   .then(() => {
     console.log('✅ MongoDB Connected Successfully');
-    // Start server with http server instance (required for Socket.IO)
+
     server.listen(PORT, () => {
-      console.log(`🚀 Server running on http://localhost:${PORT}`);
+      console.log(`🚀 Server running on port ${PORT}`);
     });
   })
   .catch((err) => {

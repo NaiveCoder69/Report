@@ -9,7 +9,7 @@ import {
   Col,
   ListGroup,
 } from "react-bootstrap";
-import API from "../api";
+import API from "../api"; // api.js placed directly under src
 import { AuthContext } from "../contexts/AuthContext";
 import "../styles/projectDetails.css";
 
@@ -40,11 +40,14 @@ const ProjectDetails = () => {
         API.get(`/expenses?project=${id}`),
       ]);
 
-      setProject(projectRes.data);
+      setProject(projectRes.data || null);
       setMaterials(Array.isArray(materialRes.data) ? materialRes.data : []);
       setExpenses(Array.isArray(expenseRes.data) ? expenseRes.data : []);
     } catch (err) {
       console.error("Error loading project details:", err);
+      setProject(null);
+      setMaterials([]);
+      setExpenses([]);
     } finally {
       setLoading(false);
     }
@@ -54,9 +57,10 @@ const ProjectDetails = () => {
     try {
       setMembersLoading(true);
       const res = await API.get(`/projects/${id}/members`);
-      setMembers(res.data);
+      setMembers(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       console.error("Error loading project members:", err);
+      setMembers([]);
     } finally {
       setMembersLoading(false);
     }
@@ -99,13 +103,13 @@ const ProjectDetails = () => {
   }
 
   // Totals
-  const totalMaterialCost = materials.reduce((sum, m) => {
+  const totalMaterialCost = (materials || []).reduce((sum, m) => {
     const base =
       m.totalAmount != null ? m.totalAmount : m.quantity * m.rate;
     return sum + (base || 0);
   }, 0);
 
-  const totalExpense = expenses.reduce(
+  const totalExpense = (expenses || []).reduce(
     (sum, e) => sum + (e.amount || 0),
     0
   );
@@ -170,7 +174,7 @@ const ProjectDetails = () => {
             Material Deliveries
           </Card.Header>
           <Card.Body>
-            {materials.length > 0 ? (
+            {(materials || []).length > 0 ? (
               <Table
                 bordered
                 hover
@@ -188,7 +192,7 @@ const ProjectDetails = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {materials.map((m) => (
+                  {(materials || []).map((m) => (
                     <tr key={m._id}>
                       <td>{m.material?.name || "-"}</td>
                       <td>{m.vendor?.name || "-"}</td>
@@ -220,7 +224,7 @@ const ProjectDetails = () => {
             Project Expenses
           </Card.Header>
           <Card.Body>
-            {expenses.length > 0 ? (
+            {(expenses || []).length > 0 ? (
               <Table
                 bordered
                 hover
@@ -237,7 +241,7 @@ const ProjectDetails = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {expenses.map((e) => (
+                  {(expenses || []).map((e) => (
                     <tr key={e._id}>
                       <td>{e.description}</td>
                       <td>{e.category || "-"}</td>
@@ -265,9 +269,9 @@ const ProjectDetails = () => {
             <Card.Body>
               {membersLoading ? (
                 <Spinner animation="border" />
-              ) : members.length > 0 ? (
+              ) : (members || []).length > 0 ? (
                 <ListGroup>
-                  {members.map((member) => (
+                  {(members || []).map((member) => (
                     <ListGroup.Item
                       key={member._id}
                       className="d-flex justify-content-between align-items-center"

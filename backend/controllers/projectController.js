@@ -5,10 +5,18 @@ const Expense = require("../models/Expense");
 const LaborPayment = require("../models/LaborPayment");
 const MaterialDelivery = require("../models/MaterialDelivery");
 
-// createProject without any uniqueness check
+// Create project
 exports.createProject = async (req, res) => {
   try {
-    const { name, client, location, budget, startDate, endDate, assignedEngineer } = req.body;
+    const {
+      name,
+      client,
+      location,
+      budget,
+      startDate,
+      endDate,
+      assignedEngineer,
+    } = req.body;
 
     const project = await Project.create({
       name,
@@ -30,8 +38,11 @@ exports.createProject = async (req, res) => {
       createdAt: new Date(),
       company: req.user.company,
     });
+
     const io = req.app.get("io");
-    io.emit("newNotification", notification);
+    if (io) {
+      io.emit("newNotification", notification);
+    }
 
     res.status(201).json(project);
   } catch (error) {
@@ -40,7 +51,7 @@ exports.createProject = async (req, res) => {
   }
 };
 
-// getProjects unchanged
+// Get all projects for this company
 exports.getProjects = async (req, res) => {
   try {
     const projects = await Project.find({ company: req.user.company });
@@ -51,7 +62,28 @@ exports.getProjects = async (req, res) => {
   }
 };
 
-// deleteProject unchanged
+// Get single project by ID for this company (used in ProjectDetails page)
+exports.getProjectById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const project = await Project.findOne({
+      _id: id,
+      company: req.user.company,
+    });
+
+    if (!project) {
+      return res.status(404).json({ message: "Project not found" });
+    }
+
+    res.json(project);
+  } catch (error) {
+    console.error("Error fetching project by id:", error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Delete project and related data
 exports.deleteProject = async (req, res) => {
   try {
     const { id } = req.params;
@@ -89,8 +121,11 @@ exports.deleteProject = async (req, res) => {
       createdAt: new Date(),
       company: req.user.company,
     });
+
     const io = req.app.get("io");
-    io.emit("newNotification", notification);
+    if (io) {
+      io.emit("newNotification", notification);
+    }
 
     res.json({ message: "Project and related data deleted successfully" });
   } catch (error) {
@@ -99,13 +134,14 @@ exports.deleteProject = async (req, res) => {
   }
 };
 
+// Add member to project
 exports.addProjectMember = async (req, res) => {
   try {
     const { id } = req.params; // Project ID
     const { userId } = req.body; // User ID to add
 
-    const project = await Project.findByIdAndUpdate(
-      id,
+    const project = await Project.findOneAndUpdate(
+      { _id: id, company: req.user.company },
       { $addToSet: { members: userId } }, // Add user if not exists
       { new: true }
     ).populate("members", "name email role");
@@ -114,6 +150,7 @@ exports.addProjectMember = async (req, res) => {
 
     res.json(project);
   } catch (error) {
+    console.error("Error adding project member:", error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -123,8 +160,8 @@ exports.removeProjectMember = async (req, res) => {
   try {
     const { id, userId } = req.params;
 
-    const project = await Project.findByIdAndUpdate(
-      id,
+    const project = await Project.findOneAndUpdate(
+      { _id: id, company: req.user.company },
       { $pull: { members: userId } },
       { new: true }
     ).populate("members", "name email role");
@@ -133,6 +170,7 @@ exports.removeProjectMember = async (req, res) => {
 
     res.json(project);
   } catch (error) {
+    console.error("Error removing project member:", error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -142,14 +180,16 @@ exports.getProjectMembers = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const project = await Project.findById(id).populate(
-      "members",
-      "name email role"
-    );
+    const project = await Project.findOne({
+      _id: id,
+      company: req.user.company,
+    }).populate("members", "name email role");
+
     if (!project) return res.status(404).json({ message: "Project not found" });
 
-    res.json(project.members);
+    res.json(project.members || []);
   } catch (error) {
+    console.error("Error fetching project members:", error);
     res.status(500).json({ message: error.message });
   }
 };

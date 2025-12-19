@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Construction Ease</string>
+    <string name="title_activity_main">ConstructionDash</string>
+    <string name="package_name">com.constructiondash.app</string>
+    <string name="custom_url_scheme">com.constructiondash.app</string>
+</resources>

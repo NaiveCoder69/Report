@@ -1,0 +1,9 @@
+{
+  "appId": "com.constructiondash.app",
+  "appName": "ConstructionDash",
+  "webDir": "dist",
+  "server": {
+    "url": "https://constructiondash.vercel.app/login",
+    "cleartext": true
+  }
+}

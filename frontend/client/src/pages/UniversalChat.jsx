@@ -5,18 +5,7 @@ import { AuthContext } from "../contexts/AuthContext";
 const UniversalChat = () => {
   const { user } = useContext(AuthContext);
   const [messages, setMessages] = useState([
-    { 
-      text: "👋 Welcome to Data Entry Assistant!", 
-      type: "bot", 
-      time: "Just now",
-      id: "1"
-    },
-    { 
-      text: "Quick commands:\n• `add delivery cement 50 450`\n• `add expense transport 5000`\n• `add material bricks`\n• `add vendor ABC cement`\n• `show projects`", 
-      type: "bot", 
-      time: "Just now",
-      id: "2"
-    }
+    { text: "👋 What to add today?", type: "bot", time: "Just now", id: 1 }
   ]);
   const [input, setInput] = useState("");
   const [isListening, setIsListening] = useState(false);
@@ -33,16 +22,8 @@ const UniversalChat = () => {
   }, [messages]);
 
   const addMessage = (text, type = "user") => {
-    const time = new Date().toLocaleTimeString([], { 
-      hour: '2-digit', 
-      minute: '2-digit' 
-    });
-    setMessages(prev => [...prev, { 
-      text, 
-      type, 
-      time,  // ✅ STRING ONLY - NO CRASHES
-      id: Date.now().toString()
-    }]);
+    const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    setMessages(prev => [...prev, { text, type, time, id: Date.now() }]);
   };
 
   const handleSubmit = async () => {
@@ -60,90 +41,115 @@ const UniversalChat = () => {
         companyId: user?.company?._id
       });
       
-      const botResponse = response.data.message || "✅ Action completed!";
-      addMessage(botResponse, response.data.success ? "success" : "bot");
-      
+      addMessage(response.data.message || "✅ Done!", "bot");
       if (response.data.success && response.data.action) {
-        addMessage(`✅ ${response.data.action} processed!`, "success");
+        addMessage(`✅ ${response.data.action} completed!`, "success");
       }
     } catch (error) {
-      console.error("Chat API error:", error);
-      addMessage(
-        "❌ Sorry! Try:\n• `add delivery cement 50 450`\n• `add expense transport 5000`", 
-        "error"
-      );
+      console.error("Chat error:", error);
+      addMessage("❌ Try: 'add delivery cement 50 450'", "error");
     } finally {
       setLoading(false);
     }
   };
 
-  // Voice Recognition - SAFE
+  // Voice Recognition
   useEffect(() => {
-    if (typeof window !== 'undefined' && "webkitSpeechRecognition" in window) {
-      const recognition = new (window.webkitSpeechRecognition || window.SpeechRecognition)();
-      recognition.continuous = false;
-      recognition.interimResults = false;
-      recognition.lang = "en-IN";
+    if (!("webkitSpeechRecognition" in window)) return;
 
-      recognition.onstart = () => setIsListening(true);
-      recognition.onend = () => setIsListening(false);
-      recognition.onerror = () => setIsListening(false);
-      recognition.onresult = (event) => {
-        const transcript = event.results[0][0].transcript;
-        setInput(transcript);
-      };
+    const recognition = new (window.webkitSpeechRecognition || window.SpeechRecognition)();
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.lang = "en-IN";
 
-      window.startVoice = () => recognition.start();
-    }
+    recognition.onstart = () => setIsListening(true);
+    recognition.onend = () => setIsListening(false);
+    recognition.onerror = () => setIsListening(false);
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      setInput(transcript);
+    };
+
+    window.startVoice = () => recognition.start();
   }, []);
 
+  // Quick Action Buttons (EXACTLY like PDF)
+  const quickActions = [
+    { label: "📦 Delivery", command: "add delivery cement 50 450" },
+    { label: "💰 Expense", command: "add expense transport 5000" },
+    { label: "🧱 Material", command: "add material bricks" },
+    { label: "🏭 Vendor", command: "add vendor ABC cement" }
+  ];
+
   return (
-    <div style={{
-      width: "100%",
-      maxWidth: "500px",
-      height: "400px",
-      border: "1px solid #e0e0e0",
-      borderRadius: "12px",
-      display: "flex",
+    <div style={{ 
+      width: "100%", 
+      maxWidth: "500px", 
+      height: "500px", 
+      borderRadius: "16px",
+      boxShadow: "0 8px 32px rgba(0,0,0,0.12)",
+      display: "flex", 
       flexDirection: "column",
-      background: "#ffffff",
-      boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
-      fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+      background: "#fff",
+      fontFamily: "-apple-system, BlinkMacSystemFont, sans-serif",
       overflow: "hidden"
     }}>
-      {/* Header */}
+      {/* WhatsApp-style Header */}
       <div style={{
-        padding: "16px",
-        background: "linear-gradient(135deg, #0B3D91 0%, #1e5bb8 100%)",
+        padding: "16px 20px",
+        background: "#075E54",
         color: "white",
-        borderRadius: "12px 12px 0 0"
+        borderBottom: "1px solid #128C7E"
       }}>
-        <div style={{ 
-          margin: 0, 
-          fontSize: "16px", 
-          fontWeight: 600 
-        }}>
-          🤖 Data Entry Assistant
+        <div style={{ fontSize: "18px", fontWeight: 600 }}>
+          💬 Data Entry
         </div>
-        <div style={{ 
-          fontSize: "12px", 
-          opacity: 0.9, 
-          marginTop: "4px" 
-        }}>
-          Type or speak construction commands
+        <div style={{ fontSize: "13px", opacity: 0.9 }}>
+          Say "add delivery cement 50 450"
         </div>
       </div>
 
-      {/* Messages */}
+      {/* Quick Buttons Row (EXACTLY like PDF) */}
       <div style={{
-        flex: 1,
-        overflowY: "auto",
+        padding: "12px 16px",
+        background: "#E5DDD5",
+        borderBottom: "1px solid #D1D7D2",
+        display: "flex",
+        gap: "8px",
+        flexWrap: "wrap"
+      }}>
+        {quickActions.map((action, index) => (
+          <button
+            key={index}
+            onClick={() => setInput(action.command)}
+            style={{
+              padding: "8px 16px",
+              borderRadius: "20px",
+              border: "none",
+              background: "#FFF",
+              color: "#075E54",
+              fontSize: "14px",
+              fontWeight: 500,
+              cursor: "pointer",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+              whiteSpace: "nowrap"
+            }}
+          >
+            {action.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Messages - WhatsApp Style */}
+      <div style={{ 
+        flex: 1, 
+        overflowY: "auto", 
         padding: "16px",
-        background: "#f8f9fa"
+        background: "#E5DDD5"
       }}>
         {messages.map((msg) => (
           <div 
-            key={msg.id} 
+            key={msg.id}
             style={{
               marginBottom: "16px",
               display: "flex",
@@ -151,135 +157,115 @@ const UniversalChat = () => {
             }}
           >
             <div style={{
-              maxWidth: "75%",
+              maxWidth: "70%",
               padding: "12px 16px",
-              borderRadius: "20px",
+              borderRadius: "18px",
               background: msg.type === "user" 
-                ? "#007bff" 
+                ? "#DCF8C6" 
                 : msg.type === "success" 
-                ? "#28a745" 
+                ? "#D4EDDA" 
                 : msg.type === "error" 
-                ? "#dc3545" 
-                : "#ffffff",
-              color: msg.type === "user" || msg.type === "success" ? "#ffffff" : "#333333",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
-              wordWrap: "break-word"
+                ? "#F8D7DA" 
+                : "#FFF",
+              color: "#000",
+              boxShadow: "0 1px 2px rgba(0,0,0,0.1)",
+              position: "relative"
             }}>
               <div style={{ 
                 whiteSpace: "pre-wrap", 
                 lineHeight: 1.4,
-                fontSize: "14px"
+                fontSize: "15px"
               }}>
                 {msg.text}
               </div>
               <div style={{
-                marginTop: "6px",
-                fontSize: "11px",
-                opacity: 0.8
+                marginTop: "4px",
+                fontSize: "12px",
+                opacity: 0.7,
+                textAlign: msg.type === "user" ? "right" : "left"
               }}>
-                {msg.time} {/* ✅ STRING - NO CRASH */}
+                {msg.time}
               </div>
             </div>
           </div>
         ))}
         <div ref={messagesEndRef} />
         {loading && (
-          <div style={{ 
-            display: "flex", 
-            justifyContent: "flex-start", 
-            padding: "8px 0" 
-          }}>
+          <div style={{ display: "flex", justifyContent: "flex-start", padding: "8px 0" }}>
             <div style={{
               padding: "12px 16px",
-              background: "#e9ecef",
-              borderRadius: "20px",
+              background: "#FFF",
+              borderRadius: "18px",
               display: "flex",
               alignItems: "center",
-              gap: "10px"
+              gap: "8px"
             }}>
-              <span style={{ fontSize: "20px" }}>🤖</span>
               <div style={{ 
-                display: "flex", 
-                gap: "4px", 
-                height: "12px" 
-              }}>
-                <div style={{ 
-                  width: "8px", 
-                  height: "8px", 
-                  background: "#6c757d", 
-                  borderRadius: "50%",
-                  animation: "typing 1.4s infinite"
-                }} />
-                <div style={{ 
-                  width: "8px", 
-                  height: "8px", 
-                  background: "#6c757d", 
-                  borderRadius: "50%",
-                  animation: "typing 1.4s infinite 0.2s"
-                }} />
-                <div style={{ 
-                  width: "8px", 
-                  height: "8px", 
-                  background: "#6c757d", 
-                  borderRadius: "50%",
-                  animation: "typing 1.4s infinite 0.4s"
-                }} />
-              </div>
+                width: "8px", height: "8px", 
+                background: "#919191", 
+                borderRadius: "50%",
+                animation: "typing 1.4s infinite"
+              }} />
+              <div style={{ 
+                width: "8px", height: "8px", 
+                background: "#919191", 
+                borderRadius: "50%",
+                animation: "typing 1.4s infinite 0.2s"
+              }} />
+              <div style={{ 
+                width: "8px", height: "8px", 
+                background: "#919191", 
+                borderRadius: "50%",
+                animation: "typing 1.4s infinite 0.4s"
+              }} />
             </div>
           </div>
         )}
       </div>
 
-      {/* Input Area */}
+      {/* WhatsApp Input */}
       <div style={{
         padding: "12px 16px",
-        borderTop: "1px solid #e9ecef",
+        background: "#F0F0F0",
+        borderTop: "1px solid #E1E1E1",
         display: "flex",
-        alignItems: "center",
-        gap: "8px",
-        background: "#ffffff"
+        alignItems: "flex-end",
+        gap: "12px"
       }}>
         <input
           ref={inputRef}
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-              e.preventDefault();
-              handleSubmit();
-            }
-          }}
-          placeholder="Type 'add delivery cement 50 450' or tap 🎤"
+          onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSubmit()}
+          placeholder="add delivery cement 50 450..."
           style={{
             flex: 1,
-            border: "1px solid #d1d5db",
-            borderRadius: "8px",
-            padding: "10px 14px",
-            fontSize: "14px",
+            border: "none",
+            borderRadius: "24px",
+            padding: "12px 20px",
+            fontSize: "16px",
+            background: "#FFF",
             outline: "none",
-            background: "#ffffff"
+            maxHeight: "44px",
+            overflow: "hidden"
           }}
           disabled={loading}
-          autoFocus
         />
         <button 
           onClick={() => window.startVoice?.()}
+          disabled={loading}
           style={{
             width: "44px",
             height: "44px",
             border: "none",
             borderRadius: "50%",
-            background: isListening ? "#ef4444" : "#3b82f6",
-            color: "#ffffff",
+            background: isListening ? "#25D366" : "#008069",
+            color: "white",
             cursor: "pointer",
             display: "flex",
             alignItems: "center",
-            justifyContent: "center",
-            fontSize: "18px",
-            boxShadow: "0 2px 8px rgba(0,0,0,0.15)"
+            justifyContent: "center"
           }}
-          title="Voice Input"
-          disabled={loading}
         >
           🎤
         </button>
@@ -291,30 +277,22 @@ const UniversalChat = () => {
             height: "44px",
             border: "none",
             borderRadius: "50%",
-            background: loading || !input.trim() ? "#9ca3af" : "#10b981",
-            color: "#ffffff",
+            background: loading || !input.trim() ? "#A9A9A9" : "#25D366",
+            color: "white",
             cursor: loading || !input.trim() ? "not-allowed" : "pointer",
             display: "flex",
             alignItems: "center",
-            justifyContent: "center",
-            fontSize: "18px",
-            boxShadow: "0 2px 8px rgba(0,0,0,0.15)"
+            justifyContent: "center"
           }}
         >
-          {loading ? "⏳" : "📤"}
+          📤
         </button>
       </div>
 
       <style>{`
         @keyframes typing {
-          0%, 80%, 100% { 
-            transform: scale(0.8); 
-            opacity: 0.5; 
-          }
-          40% { 
-            transform: scale(1); 
-            opacity: 1; 
-          }
+          0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
+          40% { transform: scale(1); opacity: 1; }
         }
       `}</style>
     </div>

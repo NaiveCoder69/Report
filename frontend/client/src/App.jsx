@@ -18,6 +18,7 @@ import CreateCompany from "./pages/CreateCompany";
 import Reports from "./pages/Reports";
 import Notifications from "./pages/Notifications";
 import Delivery from "./pages/Delivery";
+import UniversalChat from "./pages/UniversalChat"; // ← NEW MAIN SCREEN
 
 // Join / invite flow
 import JoinCompanyForm from "./components/JoinCompanyForm";
@@ -30,15 +31,13 @@ import NavBar from "./components/NavBar";
 import { AuthContext } from "./contexts/AuthContext";
 
 ///////////////////////
-// TEMP ProtectedRoute
+// ProtectedRoute
 ///////////////////////
 
 function ProtectedRoute({ children }) {
   const { user } = useContext(AuthContext);
   const location = useLocation();
 
-  // Only check if user is logged in.
-  // Do NOT check company or role for now.
   if (!user) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
@@ -60,12 +59,12 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
-        {/* Join / create company flow (still reachable manually) */}
+        {/* Join / create company flow */}
         <Route path="/join-company" element={<JoinCompanyForm />} />
         <Route path="/join-pending" element={<JoinPending />} />
         <Route path="/create-company" element={<CreateCompany />} />
 
-        {/* Invite + admin pages (protected by login only) */}
+        {/* Invite + admin pages */}
         <Route
           path="/company/invite"
           element={
@@ -83,7 +82,25 @@ export default function App() {
           }
         />
 
-        {/* Main protected app routes */}
+        {/* 🚀 NEW: Universal Chat - DEFAULT LANDING PAGE */}
+        <Route
+          path="/chat"
+          element={
+            <ProtectedRoute>
+              <UniversalChat />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              <Navigate to="/chat" replace /> {/* ← Redirects home to chat */}
+            </ProtectedRoute>
+          }
+        />
+
+        {/* ALL EXISTING PAGES (still accessible via navbar) */}
         <Route
           path="/dashboard"
           element={
@@ -189,8 +206,8 @@ export default function App() {
           }
         />
 
-        {/* Default */}
-        <Route path="*" element={<Navigate to="/login" />} />
+        {/* Default redirect */}
+        <Route path="*" element={<Navigate to="/chat" replace />} />
       </Routes>
     </BrowserRouter>
   );

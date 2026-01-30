@@ -4,297 +4,307 @@ import { AuthContext } from "../contexts/AuthContext";
 
 const UniversalChat = () => {
   const { user } = useContext(AuthContext);
+  const [step, setStep] = useState(0);
+  const [formData, setFormData] = useState({});
   const [messages, setMessages] = useState([
-    { text: "👋 What to add today?", type: "bot", time: "Just now", id: 1 }
+    { text: "👋 What would you like to add?", type: "bot", id: 1 }
   ]);
-  const [input, setInput] = useState("");
-  const [isListening, setIsListening] = useState(false);
-  const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef(null);
-  const inputRef = useRef(null);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  // Actions configuration
+  const actions = {
+    "Add Vendor": ["name", "materialType", "contact"],
+    "Add Delivery": ["project", "vendor", "material", "quantity", "rate"],
+    "Add Expense": ["project", "category", "amount", "description"],
+    "Add Material": ["name", "unit"]
   };
+
+  const actionOptions = [
+    "Add Vendor", "Add Delivery", "Add Expense", "Add Material"
+  ];
+
+  // Mock data - replace with your API calls
+  const projects = ["Project Alpha", "Project Beta", "PNK Site 1"];
+  const vendors = ["ABC Cement", "XYZ Bricks", "Super Sand"];
+  const materials = ["Cement", "Bricks", "Sand", "Steel"];
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, step]);
 
-  const addMessage = (text, type = "user") => {
-    const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    setMessages(prev => [...prev, { text, type, time, id: Date.now() }]);
+  const addMessage = (text, type = "bot") => {
+    setMessages(prev => [...prev, { text, type, id: Date.now() }]);
   };
 
-  const handleSubmit = async () => {
-    if (!input.trim() || loading) return;
+  const handleActionSelect = (action) => {
+    setFormData({ action });
+    setStep(1);
+    addMessage(`Great! Let's add a ${action.toLowerCase()}.`);
+  };
 
-    const userInput = input.trim();
-    setInput("");
-    inputRef.current?.focus();
-    addMessage(userInput, "user");
-    setLoading(true);
-
-    try {
-      const response = await API.post("/chat/parse", { 
-        message: userInput,
-        companyId: user?.company?._id
-      });
-      
-      addMessage(response.data.message || "✅ Done!", "bot");
-      if (response.data.success && response.data.action) {
-        addMessage(`✅ ${response.data.action} completed!`, "success");
-      }
-    } catch (error) {
-      console.error("Chat error:", error);
-      addMessage("❌ Try: 'add delivery cement 50 450'", "error");
-    } finally {
-      setLoading(false);
+  const handleFieldChange = (field, value) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    
+    if (step < actions[formData.action].length) {
+      setStep(step + 1);
     }
   };
 
-  // Voice Recognition
-  useEffect(() => {
-    if (!("webkitSpeechRecognition" in window)) return;
+  const handleSubmit = async () => {
+    addMessage("✅ Creating...", "bot");
+    
+    try {
+      const response = await API.post("/chat/parse", { 
+        action: formData.action,
+        data: formData,
+        companyId: user?.company?._id
+      });
+      
+      addMessage(`✅ ${formData.action} created successfully!`, "success");
+      // Reset
+      setStep(0);
+      setFormData({});
+    } catch (error) {
+      addMessage("❌ Something went wrong. Try again.", "error");
+    }
+  };
 
-    const recognition = new (window.webkitSpeechRecognition || window.SpeechRecognition)();
-    recognition.continuous = false;
-    recognition.interimResults = false;
-    recognition.lang = "en-IN";
-
-    recognition.onstart = () => setIsListening(true);
-    recognition.onend = () => setIsListening(false);
-    recognition.onerror = () => setIsListening(false);
-    recognition.onresult = (event) => {
-      const transcript = event.results[0][0].transcript;
-      setInput(transcript);
-    };
-
-    window.startVoice = () => recognition.start();
-  }, []);
-
-  // Quick Action Buttons (EXACTLY like PDF)
-  const quickActions = [
-    { label: "📦 Delivery", command: "add delivery cement 50 450" },
-    { label: "💰 Expense", command: "add expense transport 5000" },
-    { label: "🧱 Material", command: "add material bricks" },
-    { label: "🏭 Vendor", command: "add vendor ABC cement" }
-  ];
+  const currentField = actions[formData.action]?.[step - 1];
+  const isLastStep = step === actions[formData.action]?.length;
 
   return (
-    <div style={{ 
-      width: "100%", 
-      maxWidth: "500px", 
-      height: "500px", 
-      borderRadius: "16px",
-      boxShadow: "0 8px 32px rgba(0,0,0,0.12)",
-      display: "flex", 
+    <div style={{
+      width: "100%",
+      maxWidth: "500px",
+      height: "500px",
+      border: "1px solid #ddd",
+      borderRadius: "12px",
+      display: "flex",
       flexDirection: "column",
       background: "#fff",
-      fontFamily: "-apple-system, BlinkMacSystemFont, sans-serif",
-      overflow: "hidden"
+      fontFamily: "-apple-system, sans-serif"
     }}>
-      {/* WhatsApp-style Header */}
+      {/* Header */}
       <div style={{
-        padding: "16px 20px",
-        background: "#075E54",
+        padding: "16px",
+        background: "#0B3D91",
         color: "white",
-        borderBottom: "1px solid #128C7E"
+        borderRadius: "12px 12px 0 0"
       }}>
-        <div style={{ fontSize: "18px", fontWeight: 600 }}>
-          💬 Data Entry
-        </div>
-        <div style={{ fontSize: "13px", opacity: 0.9 }}>
-          Say "add delivery cement 50 450"
-        </div>
+        <h3 style={{ margin: 0 }}>🤖 Smart Assistant</h3>
+        <p style={{ margin: "4px 0 0 0", fontSize: "14px", opacity: 0.9 }}>
+          Guided data entry
+        </p>
       </div>
 
-      {/* Quick Buttons Row (EXACTLY like PDF) */}
-      <div style={{
-        padding: "12px 16px",
-        background: "#E5DDD5",
-        borderBottom: "1px solid #D1D7D2",
-        display: "flex",
-        gap: "8px",
-        flexWrap: "wrap"
-      }}>
-        {quickActions.map((action, index) => (
-          <button
-            key={index}
-            onClick={() => setInput(action.command)}
-            style={{
-              padding: "8px 16px",
-              borderRadius: "20px",
-              border: "none",
-              background: "#FFF",
-              color: "#075E54",
-              fontSize: "14px",
-              fontWeight: 500,
-              cursor: "pointer",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-              whiteSpace: "nowrap"
-            }}
-          >
-            {action.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Messages - WhatsApp Style */}
+      {/* Messages History */}
       <div style={{ 
         flex: 1, 
         overflowY: "auto", 
         padding: "16px",
-        background: "#E5DDD5"
+        background: "#f8f9fa"
       }}>
-        {messages.map((msg) => (
-          <div 
-            key={msg.id}
-            style={{
-              marginBottom: "16px",
-              display: "flex",
-              justifyContent: msg.type === "user" ? "flex-end" : "flex-start"
-            }}
-          >
-            <div style={{
-              maxWidth: "70%",
-              padding: "12px 16px",
-              borderRadius: "18px",
-              background: msg.type === "user" 
-                ? "#DCF8C6" 
-                : msg.type === "success" 
-                ? "#D4EDDA" 
-                : msg.type === "error" 
-                ? "#F8D7DA" 
-                : "#FFF",
-              color: "#000",
-              boxShadow: "0 1px 2px rgba(0,0,0,0.1)",
-              position: "relative"
-            }}>
-              <div style={{ 
-                whiteSpace: "pre-wrap", 
-                lineHeight: 1.4,
-                fontSize: "15px"
-              }}>
-                {msg.text}
-              </div>
-              <div style={{
-                marginTop: "4px",
-                fontSize: "12px",
-                opacity: 0.7,
-                textAlign: msg.type === "user" ? "right" : "left"
-              }}>
-                {msg.time}
-              </div>
-            </div>
+        {messages.map(msg => (
+          <div key={msg.id} style={{
+            marginBottom: "12px",
+            padding: "12px 16px",
+            background: msg.type === "success" ? "#d4edda" : 
+                       msg.type === "error" ? "#f8d7da" : "#fff",
+            borderRadius: "12px",
+            maxWidth: "80%"
+          }}>
+            {msg.text}
           </div>
         ))}
         <div ref={messagesEndRef} />
-        {loading && (
-          <div style={{ display: "flex", justifyContent: "flex-start", padding: "8px 0" }}>
+      </div>
+
+      {/* Current Step Input */}
+      <div style={{ padding: "16px", borderTop: "1px solid #eee", background: "#fff" }}>
+        {step === 0 ? (
+          /* Step 1: Select Action */
+          <div>
+            <p style={{ margin: "0 0 12px 0", fontWeight: 500 }}>What would you like to do?</p>
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+              {actionOptions.map(option => (
+                <button
+                  key={option}
+                  onClick={() => handleActionSelect(option)}
+                  style={{
+                    padding: "12px 16px",
+                    border: "1px solid #ddd",
+                    borderRadius: "8px",
+                    background: formData.action === option ? "#0B3D91" : "#fff",
+                    color: formData.action === option ? "white" : "#333",
+                    cursor: "pointer",
+                    textAlign: "left"
+                  }}
+                >
+                  {option}
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : !isLastStep ? (
+          /* Step 2-N: Field Inputs */
+          <div>
+            <p style={{ margin: "0 0 12px 0", fontWeight: 500 }}>
+              Step {step}/{actions[formData.action].length}: {currentField.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+            </p>
+            
+            {currentField === "quantity" || currentField === "rate" || currentField === "amount" ? (
+              /* Number Input */
+              <input
+                type="number"
+                placeholder="Enter number"
+                value={formData[currentField] || ""}
+                onChange={(e) => handleFieldChange(currentField, e.target.value)}
+                style={{
+                  width: "100%",
+                  padding: "12px 16px",
+                  border: "1px solid #ddd",
+                  borderRadius: "8px",
+                  fontSize: "16px"
+                }}
+              />
+            ) : currentField === "project" ? (
+              /* Project Dropdown */
+              <select
+                value={formData.project || ""}
+                onChange={(e) => handleFieldChange("project", e.target.value)}
+                style={{
+                  width: "100%",
+                  padding: "12px 16px",
+                  border: "1px solid #ddd",
+                  borderRadius: "8px",
+                  fontSize: "16px",
+                  background: "#fff"
+                }}
+              >
+                <option value="">Select Project</option>
+                {projects.map(p => <option key={p} value={p}>{p}</option>)}
+              </select>
+            ) : currentField === "vendor" ? (
+              /* Vendor Dropdown */
+              <select
+                value={formData.vendor || ""}
+                onChange={(e) => handleFieldChange("vendor", e.target.value)}
+                style={{
+                  width: "100%",
+                  padding: "12px 16px",
+                  border: "1px solid #ddd",
+                  borderRadius: "8px",
+                  fontSize: "16px",
+                  background: "#fff"
+                }}
+              >
+                <option value="">Select Vendor</option>
+                {vendors.map(v => <option key={v} value={v}>{v}</option>)}
+              </select>
+            ) : currentField === "material" ? (
+              /* Material Dropdown */
+              <select
+                value={formData.material || ""}
+                onChange={(e) => handleFieldChange("material", e.target.value)}
+                style={{
+                  width: "100%",
+                  padding: "12px 16px",
+                  border: "1px solid #ddd",
+                  borderRadius: "8px",
+                  fontSize: "16px",
+                  background: "#fff"
+                }}
+              >
+                <option value="">Select Material</option>
+                {materials.map(m => <option key={m} value={m}>{m}</option>)}
+              </select>
+            ) : (
+              /* Text Input */
+              <input
+                type="text"
+                placeholder={`Enter ${currentField}...`}
+                value={formData[currentField] || ""}
+                onChange={(e) => handleFieldChange(currentField, e.target.value)}
+                style={{
+                  width: "100%",
+                  padding: "12px 16px",
+                  border: "1px solid #ddd",
+                  borderRadius: "8px",
+                  fontSize: "16px"
+                }}
+              />
+            )}
+            
+            {step > 1 && (
+              <button
+                onClick={() => setStep(step - 1)}
+                style={{
+                  marginTop: "12px",
+                  padding: "8px 16px",
+                  border: "1px solid #999",
+                  background: "#fff",
+                  borderRadius: "6px",
+                  cursor: "pointer"
+                }}
+              >
+                ← Back
+              </button>
+            )}
+          </div>
+        ) : (
+          /* Final Confirmation */
+          <div>
+            <h4 style={{ margin: "0 0 16px 0" }}>Review & Confirm</h4>
             <div style={{
-              padding: "12px 16px",
-              background: "#FFF",
-              borderRadius: "18px",
-              display: "flex",
-              alignItems: "center",
-              gap: "8px"
+              padding: "16px",
+              background: "#f8f9fa",
+              borderRadius: "8px",
+              marginBottom: "16px"
             }}>
-              <div style={{ 
-                width: "8px", height: "8px", 
-                background: "#919191", 
-                borderRadius: "50%",
-                animation: "typing 1.4s infinite"
-              }} />
-              <div style={{ 
-                width: "8px", height: "8px", 
-                background: "#919191", 
-                borderRadius: "50%",
-                animation: "typing 1.4s infinite 0.2s"
-              }} />
-              <div style={{ 
-                width: "8px", height: "8px", 
-                background: "#919191", 
-                borderRadius: "50%",
-                animation: "typing 1.4s infinite 0.4s"
-              }} />
+              <strong>{formData.action}</strong><br/>
+              {Object.entries(formData).map(([key, value]) => (
+                key !== "action" && (
+                  <div key={key} style={{ margin: "4px 0", fontSize: "14px" }}>
+                    {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}: {value}
+                  </div>
+                )
+              ))}
+            </div>
+            <div style={{ display: "flex", gap: "12px" }}>
+              <button
+                onClick={handleSubmit}
+                style={{
+                  flex: 1,
+                  padding: "12px 16px",
+                  background: "#0B3D91",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "8px",
+                  fontSize: "16px",
+                  cursor: "pointer"
+                }}
+              >
+                ✅ Create
+              </button>
+              <button
+                onClick={() => setStep(0)}
+                style={{
+                  flex: 1,
+                  padding: "12px 16px",
+                  background: "#fff",
+                  color: "#0B3D91",
+                  border: "1px solid #0B3D91",
+                  borderRadius: "8px",
+                  fontSize: "16px",
+                  cursor: "pointer"
+                }}
+              >
+                Cancel
+              </button>
             </div>
           </div>
         )}
       </div>
-
-      {/* WhatsApp Input */}
-      <div style={{
-        padding: "12px 16px",
-        background: "#F0F0F0",
-        borderTop: "1px solid #E1E1E1",
-        display: "flex",
-        alignItems: "flex-end",
-        gap: "12px"
-      }}>
-        <input
-          ref={inputRef}
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSubmit()}
-          placeholder="add delivery cement 50 450..."
-          style={{
-            flex: 1,
-            border: "none",
-            borderRadius: "24px",
-            padding: "12px 20px",
-            fontSize: "16px",
-            background: "#FFF",
-            outline: "none",
-            maxHeight: "44px",
-            overflow: "hidden"
-          }}
-          disabled={loading}
-        />
-        <button 
-          onClick={() => window.startVoice?.()}
-          disabled={loading}
-          style={{
-            width: "44px",
-            height: "44px",
-            border: "none",
-            borderRadius: "50%",
-            background: isListening ? "#25D366" : "#008069",
-            color: "white",
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center"
-          }}
-        >
-          🎤
-        </button>
-        <button 
-          onClick={handleSubmit}
-          disabled={loading || !input.trim()}
-          style={{
-            width: "44px",
-            height: "44px",
-            border: "none",
-            borderRadius: "50%",
-            background: loading || !input.trim() ? "#A9A9A9" : "#25D366",
-            color: "white",
-            cursor: loading || !input.trim() ? "not-allowed" : "pointer",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center"
-          }}
-        >
-          📤
-        </button>
-      </div>
-
-      <style>{`
-        @keyframes typing {
-          0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
-          40% { transform: scale(1); opacity: 1; }
-        }
-      `}</style>
     </div>
   );
 };

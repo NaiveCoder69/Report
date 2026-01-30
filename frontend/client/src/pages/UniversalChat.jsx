@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import API from "../api"; // your existing API client
-// import "./styles/universalChat.css"; 
+import "./styles/universalChat.css"; 
 
 const UniversalChat = () => {
   const [messages, setMessages] = useState([

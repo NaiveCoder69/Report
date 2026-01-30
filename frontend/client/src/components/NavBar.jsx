@@ -15,11 +15,13 @@ import {
   ListItemText,
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
+import ChatIcon from '@mui/icons-material/Chat'; // Add this import
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
 
-// Define navigation links and which roles can see them
+// Updated navLinks - CHAT ADDED FIRST
 const navLinks = [
+  { path: "/chat", label: "Chat", icon: <ChatIcon /> }, // 🚀 NEW
   { path: "/dashboard", label: "Dashboard" },
   { path: "/projects", label: "Projects" },
   { path: "/materials", label: "Materials", roles: ["admin", "engineer"] },
@@ -161,6 +163,7 @@ export default function NavBar() {
                 color="inherit"
                 component={Link}
                 to={link.path}
+                startIcon={link.icon} // 🚀 Chat icon
                 sx={{
                   textTransform: 'none',
                   fontSize: 14,

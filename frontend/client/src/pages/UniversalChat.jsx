@@ -8,13 +8,13 @@ const UniversalChat = () => {
     { 
       text: "👋 Welcome to Data Entry Assistant!", 
       type: "bot", 
-      timestamp: Date.now(),
+      time: "Just now",
       id: "1"
     },
     { 
       text: "Quick commands:\n• `add delivery cement 50 450`\n• `add expense transport 5000`\n• `add material bricks`\n• `add vendor ABC cement`\n• `show projects`", 
       type: "bot", 
-      timestamp: Date.now() + 1000,
+      time: "Just now",
       id: "2"
     }
   ]);
@@ -33,18 +33,16 @@ const UniversalChat = () => {
   }, [messages]);
 
   const addMessage = (text, type = "user") => {
+    const time = new Date().toLocaleTimeString([], { 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    });
     setMessages(prev => [...prev, { 
       text, 
       type, 
-      timestamp: Date.now(),
+      time,  // ✅ STRING ONLY - NO CRASHES
       id: Date.now().toString()
     }]);
-  };
-
-  const formatTime = (timestamp) => {
-    // ✅ SAFE: Always works with number OR Date
-    const date = typeof timestamp === 'number' ? new Date(timestamp) : timestamp;
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
   const handleSubmit = async () => {
@@ -79,27 +77,26 @@ const UniversalChat = () => {
     }
   };
 
-  // Voice Recognition
+  // Voice Recognition - SAFE
   useEffect(() => {
-    if (!("webkitSpeechRecognition" in window)) return;
+    if (typeof window !== 'undefined' && "webkitSpeechRecognition" in window) {
+      const recognition = new (window.webkitSpeechRecognition || window.SpeechRecognition)();
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.lang = "en-IN";
 
-    const recognition = new (window.webkitSpeechRecognition || window.SpeechRecognition)();
-    recognition.continuous = false;
-    recognition.interimResults = false;
-    recognition.lang = "en-IN";
+      recognition.onstart = () => setIsListening(true);
+      recognition.onend = () => setIsListening(false);
+      recognition.onerror = () => setIsListening(false);
+      recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        setInput(transcript);
+      };
 
-    recognition.onstart = () => setIsListening(true);
-    recognition.onend = () => setIsListening(false);
-    recognition.onerror = () => setIsListening(false);
-    recognition.onresult = (event) => {
-      const transcript = event.results[0][0].transcript;
-      setInput(transcript);
-    };
-
-    window.startVoice = () => recognition.start();
+      window.startVoice = () => recognition.start();
+    }
   }, []);
 
-  // ✅ PERFECT INLINE STYLES - NO CRASHES
   return (
     <div style={{
       width: "100%",
@@ -180,7 +177,7 @@ const UniversalChat = () => {
                 fontSize: "11px",
                 opacity: 0.8
               }}>
-                {formatTime(msg.timestamp)}
+                {msg.time} {/* ✅ STRING - NO CRASH */}
               </div>
             </div>
           </div>
@@ -266,7 +263,7 @@ const UniversalChat = () => {
           autoFocus
         />
         <button 
-          onClick={window.startVoice}
+          onClick={() => window.startVoice?.()}
           style={{
             width: "44px",
             height: "44px",

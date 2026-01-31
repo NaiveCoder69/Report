@@ -1,105 +1,126 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import API from "../api";
+
+const projectFlow = [
+  { key: "name", label: "Enter project name", type: "text", required: true },
+  { key: "client", label: "Enter client name", type: "text", required: true },
+  { key: "location", label: "Enter project location", type: "text", required: true },
+  { key: "budget", label: "Enter budget (optional)", type: "number", required: false },
+  { key: "startDate", label: "Select start date", type: "date", required: true },
+  { key: "endDate", label: "Select end date (optional)", type: "date", required: false },
+  { key: "assignedEngineer", label: "Enter assigned engineer", type: "text", required: true },
+];
 
 const UniversalChat = () => {
   const [messages, setMessages] = useState([
-    {
-      id: 1,
-      sender: "bot",
-      text: "👋 Hi! You can type things like:\n\n• add delivery cement 50 450\n• add expense transport 5000\n• add vendor abc cement"
-    }
+    { sender: "bot", text: "👋 What do you want to do?" }
   ]);
+  const [step, setStep] = useState(-1);
   const [input, setInput] = useState("");
-  const messagesEndRef = useRef(null);
+  const [formData, setFormData] = useState({});
+  const [flow, setFlow] = useState(null);
 
-  // Auto scroll to bottom
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+    if (step >= 0 && flow) {
+      addBotMessage(flow[step].label);
+    }
+  }, [step]);
 
-  const sendMessage = async () => {
-    if (!input.trim()) return;
+  const addBotMessage = (text) => {
+    setMessages((prev) => [...prev, { sender: "bot", text }]);
+  };
 
-    const userMessage = {
-      id: Date.now(),
-      sender: "user",
-      text: input
-    };
+  const addUserMessage = (text) => {
+    setMessages((prev) => [...prev, { sender: "user", text }]);
+  };
 
-    setMessages(prev => [...prev, userMessage]);
+  const startProjectFlow = () => {
+    setFlow(projectFlow);
+    setFormData({});
+    setStep(0);
+    addUserMessage("Add Project");
+  };
+
+  const handleSubmitValue = async () => {
+    const current = flow[step];
+
+    if (!input && current.required) {
+      addBotMessage("❗ This field is required.");
+      return;
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      [current.key]: input,
+    }));
+
+    addUserMessage(input || "(skipped)");
     setInput("");
 
-    try {
-      // STEP 2 will connect real backend logic
-      const res = await API.post("/chat", {
-        message: userMessage.text
+    if (step < flow.length - 1) {
+      setStep(step + 1);
+    } else {
+      await submitProject({
+        ...formData,
+        [current.key]: input,
       });
+    }
+  };
 
-      setMessages(prev => [
-        ...prev,
-        {
-          id: Date.now() + 1,
-          sender: "bot",
-          text: res.data?.reply || "✅ Received"
-        }
-      ]);
+  const submitProject = async (payload) => {
+    try {
+      await API.post("/projects", payload);
+      addBotMessage("✅ Project added successfully!");
     } catch (err) {
-      setMessages(prev => [
-        ...prev,
-        {
-          id: Date.now() + 2,
-          sender: "bot",
-          text: "❌ Could not connect. Backend not ready yet."
-        }
-      ]);
+      addBotMessage("❌ Failed to add project.");
+      console.error(err);
     }
+
+    setStep(-1);
+    setFlow(null);
+    setFormData({});
+    addBotMessage("What do you want to do next?");
   };
 
-  const handleKeyPress = (e) => {
-    if (e.key === "Enter") {
-      sendMessage();
-    }
-  };
+  const currentField = flow?.[step];
 
   return (
     <div style={styles.wrapper}>
-      {/* Header */}
-      <div style={styles.header}>
-        🤖 Smart Assistant
-      </div>
+      <div style={styles.header}>🤖 Smart Assistant</div>
 
-      {/* Messages */}
-      <div style={styles.chatBody}>
-        {messages.map(msg => (
+      <div style={styles.chat}>
+        {messages.map((m, i) => (
           <div
-            key={msg.id}
+            key={i}
             style={{
-              ...styles.message,
-              alignSelf: msg.sender === "user" ? "flex-end" : "flex-start",
-              background: msg.sender === "user" ? "#DCF8C6" : "#fff"
+              ...styles.msg,
+              alignSelf: m.sender === "user" ? "flex-end" : "flex-start",
+              background: m.sender === "user" ? "#DCF8C6" : "#fff",
             }}
           >
-            {msg.text.split("\n").map((line, i) => (
-              <div key={i}>{line}</div>
-            ))}
+            {m.text}
           </div>
         ))}
-        <div ref={messagesEndRef} />
       </div>
 
-      {/* Input */}
-      <div style={styles.inputBox}>
-        <input
-          type="text"
-          placeholder="Type here…"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={handleKeyPress}
-          style={styles.input}
-        />
-        <button onClick={sendMessage} style={styles.sendBtn}>
-          ➤
-        </button>
+      <div style={styles.inputArea}>
+        {step === -1 ? (
+          <button onClick={startProjectFlow} style={styles.actionBtn}>
+            ➕ Add Project
+          </button>
+        ) : (
+          <>
+            <input
+              type={currentField.type}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              style={styles.input}
+            />
+            <button onClick={handleSubmitValue} style={styles.sendBtn}>
+              ➤
+            </button>
+          </>
+        )}
       </div>
     </div>
   );
@@ -107,61 +128,67 @@ const UniversalChat = () => {
 
 const styles = {
   wrapper: {
-    maxWidth: "600px",
+    maxWidth: 520,
     height: "85vh",
     margin: "20px auto",
+    border: "1px solid #ddd",
+    borderRadius: 12,
     display: "flex",
     flexDirection: "column",
-    border: "1px solid #ddd",
-    borderRadius: "12px",
-    background: "#f0f0f0"
+    background: "#f0f0f0",
   },
   header: {
-    padding: "14px",
+    padding: 14,
     background: "#075E54",
     color: "#fff",
-    fontWeight: "600",
-    borderRadius: "12px 12px 0 0"
+    fontWeight: 600,
+    borderRadius: "12px 12px 0 0",
   },
-  chatBody: {
+  chat: {
     flex: 1,
-    padding: "16px",
+    padding: 16,
     display: "flex",
     flexDirection: "column",
-    gap: "10px",
-    overflowY: "auto"
+    gap: 10,
+    overflowY: "auto",
   },
-  message: {
-    maxWidth: "75%",
+  msg: {
     padding: "10px 14px",
-    borderRadius: "12px",
-    fontSize: "15px",
-    whiteSpace: "pre-wrap"
+    borderRadius: 12,
+    maxWidth: "80%",
+    fontSize: 15,
   },
-  inputBox: {
+  inputArea: {
     display: "flex",
-    padding: "10px",
+    padding: 10,
+    gap: 8,
     borderTop: "1px solid #ddd",
-    background: "#fff"
+    background: "#fff",
   },
   input: {
     flex: 1,
-    padding: "10px",
-    fontSize: "16px",
-    borderRadius: "20px",
+    padding: 10,
+    borderRadius: 20,
     border: "1px solid #ccc",
-    outline: "none"
+    outline: "none",
   },
   sendBtn: {
-    marginLeft: "10px",
     padding: "0 18px",
     borderRadius: "50%",
     border: "none",
     background: "#075E54",
     color: "#fff",
-    fontSize: "18px",
-    cursor: "pointer"
-  }
+    cursor: "pointer",
+  },
+  actionBtn: {
+    flex: 1,
+    padding: 12,
+    borderRadius: 8,
+    border: "none",
+    background: "#075E54",
+    color: "#fff",
+    cursor: "pointer",
+  },
 };
 
 export default UniversalChat;

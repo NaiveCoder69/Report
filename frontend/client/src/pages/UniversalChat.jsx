@@ -91,36 +91,77 @@ const deliveryFlow = {
     };
   },
   fields: [
+    { key: "project", label: "Select project", type: "select", required: true, optionsKey: "projects", optionLabel: "name", optionValue: "_id" },
+    { key: "vendor", label: "Select vendor", type: "select", required: true, optionsKey: "vendors", optionLabel: "name", optionValue: "_id" },
+    { key: "material", label: "Select material", type: "select", required: true, optionsKey: "materials", optionLabel: "name", optionValue: "_id" },
+    { key: "quantity", label: "Enter quantity", type: "number", required: true },
+    { key: "rate", label: "Enter rate (₹)", type: "number", required: true },
+    { key: "date", label: "Select delivery date", type: "date", required: true },
+  ],
+};
+
+const billFlow = {
+  api: "/bills",
+  success: "✅ Bill added successfully!",
+  preload: async () => {
+    const [vendors, labor, projects] = await Promise.all([
+      API.get("/vendors"),
+      API.get("/labor-contractors"),
+      API.get("/projects"),
+    ]);
+    return {
+      vendors: vendors.data,
+      labor: labor.data,
+      projects: projects.data,
+    };
+  },
+  fields: [
     {
-      key: "project",
-      label: "Select project",
+      key: "recipientType",
+      label: "Select recipient type",
       type: "select",
       required: true,
-      optionsKey: "projects",
-      optionLabel: "name",
-      optionValue: "_id",
+      staticOptions: [
+        { label: "Vendor", value: "vendor" },
+        { label: "Labor Contractor", value: "labor-contractor" },
+      ],
     },
+    { key: "billNumber", label: "Enter bill number", type: "text", required: true },
+
+    // vendor path
     {
       key: "vendor",
       label: "Select vendor",
       type: "select",
-      required: true,
+      requiredIf: (d) => d.recipientType === "vendor",
       optionsKey: "vendors",
       optionLabel: "name",
       optionValue: "_id",
     },
+
+    // labor path
     {
-      key: "material",
-      label: "Select material",
+      key: "laborContractor",
+      label: "Select labor contractor",
       type: "select",
-      required: true,
-      optionsKey: "materials",
+      requiredIf: (d) => d.recipientType === "labor-contractor",
+      optionsKey: "labor",
       optionLabel: "name",
       optionValue: "_id",
     },
-    { key: "quantity", label: "Enter quantity", type: "number", required: true },
-    { key: "rate", label: "Enter rate (₹)", type: "number", required: true },
-    { key: "date", label: "Select delivery date", type: "date", required: true },
+    {
+      key: "project",
+      label: "Select project",
+      type: "select",
+      requiredIf: (d) => d.recipientType === "labor-contractor",
+      optionsKey: "projects",
+      optionLabel: "name",
+      optionValue: "_id",
+    },
+
+    { key: "amount", label: "Enter amount (₹)", type: "number", required: true },
+    { key: "billDate", label: "Select bill date", type: "date", required: true },
+    { key: "remarks", label: "Enter remarks (optional)", type: "text", required: false },
   ],
 };
 
@@ -130,6 +171,7 @@ const FLOWS = {
   material: materialFlow,
   expense: expenseFlow,
   delivery: deliveryFlow,
+  bill: billFlow,
 };
 
 /* ---------------- COMPONENT ---------------- */
@@ -144,7 +186,11 @@ export default function UniversalChat() {
   const [formData, setFormData] = useState({});
 
   const flow = flowKey ? FLOWS[flowKey] : null;
+
   const field = flow?.fields[step];
+  const isRequired =
+    field?.required ||
+    (field?.requiredIf && field.requiredIf(formData));
 
   const addBot = (t) => setMessages((m) => [...m, { sender: "bot", text: t }]);
   const addUser = (t) => setMessages((m) => [...m, { sender: "user", text: t }]);
@@ -155,7 +201,6 @@ export default function UniversalChat() {
     setSuggestions(ACTIONS.filter((a) => a.label.toLowerCase().includes(input.toLowerCase())));
   }, [input, flowKey]);
 
-  /* Start action */
   const startAction = async (action) => {
     addUser(action.label);
     setInput("");
@@ -168,22 +213,17 @@ export default function UniversalChat() {
     setStep(0);
     setFormData({});
 
-    if (f.preload) {
-      const data = await f.preload();
-      setFlowData(data);
-    }
+    if (f.preload) setFlowData(await f.preload());
   };
 
-  /* Ask question */
   useEffect(() => {
     if (field) addBot(field.label);
   }, [step]);
 
-  /* Submit field */
   const submitField = async () => {
     if (!field) return;
 
-    if (!input && field.required) {
+    if (!input && isRequired) {
       addBot("❗ This field is required.");
       return;
     }
@@ -197,7 +237,6 @@ export default function UniversalChat() {
     else submitForm(updated);
   };
 
-  /* Submit form */
   const submitForm = async (payload) => {
     try {
       await API.post(flow.api, payload);
@@ -212,7 +251,6 @@ export default function UniversalChat() {
     addBot("What do you want to do next?");
   };
 
-  /* UI */
   return (
     <div style={styles.wrapper}>
       <div style={styles.header}>🤖 Smart Assistant</div>
@@ -236,11 +274,15 @@ export default function UniversalChat() {
         {field?.type === "select" ? (
           <select value={input} onChange={(e) => setInput(e.target.value)} style={styles.input}>
             <option value="">Select</option>
-            {(flowData[field.optionsKey] || []).map((o) => (
-              <option key={o[field.optionValue]} value={o[field.optionValue]}>
-                {o[field.optionLabel]}
-              </option>
-            ))}
+            {field.staticOptions
+              ? field.staticOptions.map((o) => (
+                  <option key={o.value} value={o.value}>{o.label}</option>
+                ))
+              : (flowData[field.optionsKey] || []).map((o) => (
+                  <option key={o[field.optionValue]} value={o[field.optionValue]}>
+                    {o[field.optionLabel]}
+                  </option>
+                ))}
           </select>
         ) : (
           <input

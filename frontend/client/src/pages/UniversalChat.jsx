@@ -1,128 +1,201 @@
 import React, { useEffect, useRef, useState } from "react";
 import API from "../api";
 
-const ACTIONS = [
-  { key: "project", label: "Add Project" },
-  { key: "vendor", label: "Add Vendor" },
-  { key: "material", label: "Add Material" },
-  { key: "expense", label: "Add Expense" },
-  { key: "delivery", label: "Add Delivery" },
-  { key: "bill", label: "Add Bill" },
-  { key: "labor", label: "Add Labor Contractor" },
-];
+export default function UniversalChat() {
+  /* -------------------- INLINE CSS -------------------- */
+  const styles = `
+    .chat-shell {
+      display: flex;
+      justify-content: center;
+      padding: 16px;
+      background: #f4f6f8;
+      min-height: 100vh;
+    }
+    .chat-box {
+      width: 100%;
+      max-width: 420px;
+      height: 85vh;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .chat-header {
+      padding: 14px 16px;
+      background: #0d6efd;
+      color: #fff;
+      font-weight: 600;
+      font-size: 15px;
+    }
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px;
+      background: #f8f9fa;
+    }
+    .chat-msg {
+      max-width: 78%;
+      padding: 10px 14px;
+      margin-bottom: 10px;
+      border-radius: 14px;
+      font-size: 14px;
+      line-height: 1.4;
+      word-break: break-word;
+    }
+    .chat-msg.bot {
+      background: #e9ecef;
+      align-self: flex-start;
+      border-bottom-left-radius: 4px;
+    }
+    .chat-msg.user {
+      background: #0d6efd;
+      color: #fff;
+      align-self: flex-end;
+      border-bottom-right-radius: 4px;
+    }
+    .chat-input {
+      padding: 12px;
+      border-top: 1px solid #eee;
+      background: #fff;
+    }
+    .chat-input input,
+    .chat-input select {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+      outline: none;
+    }
+    .chat-input input:focus,
+    .chat-input select:focus {
+      border-color: #0d6efd;
+    }
+    .chat-suggestions {
+      margin-top: 6px;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      overflow: hidden;
+      background: #fff;
+    }
+    .chat-suggestions div {
+      padding: 10px 12px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .chat-suggestions div:hover {
+      background: #f1f1f1;
+    }
+  `;
 
-/* ---------------------- FLOWS ---------------------- */
+  /* -------------------- ACTIONS -------------------- */
+  const ACTIONS = [
+    { key: "project", label: "Add Project" },
+    { key: "vendor", label: "Add Vendor" },
+    { key: "material", label: "Add Material" },
+    { key: "expense", label: "Add Expense" },
+    { key: "delivery", label: "Add Delivery" },
+    { key: "bill", label: "Add Bill" },
+    { key: "labor", label: "Add Labor Contractor" },
+  ];
 
-const projectFlow = {
-  api: "/projects",
-  fields: [
-    { key: "name", label: "Project name" },
-    { key: "client", label: "Client name" },
-    { key: "location", label: "Location" },
-    { key: "budget", label: "Budget (₹)", type: "number", optional: true },
-    { key: "startDate", label: "Start date", type: "date" },
-    { key: "endDate", label: "End date", type: "date", optional: true },
-    { key: "assignedEngineer", label: "Assigned engineer" },
-  ],
-};
-
-const vendorFlow = {
-  api: "/vendors",
-  fields: [
-    { key: "name", label: "Vendor name" },
-    { key: "contactPerson", label: "Contact person", optional: true },
-    { key: "phone", label: "Phone", optional: true },
-    { key: "email", label: "Email", optional: true },
-    { key: "address", label: "Address", optional: true },
-  ],
-};
-
-const materialFlow = {
-  api: "/materials",
-  fields: [
-    { key: "name", label: "Material name" },
-    { key: "unitType", label: "Unit type (bag, ton, truck)" },
-  ],
-};
-
-const expenseFlow = {
-  api: "/expenses",
-  fields: [
-    { key: "project", label: "Select project", type: "project" },
-    { key: "description", label: "Expense description" },
-    { key: "category", label: "Category", optional: true },
-    { key: "amount", label: "Amount (₹)", type: "number" },
-    { key: "date", label: "Expense date", type: "date" },
-    { key: "remarks", label: "Remarks", optional: true },
-  ],
-};
-
-const deliveryFlow = {
-  api: "/material-deliveries",
-  fields: [
-    { key: "project", label: "Select project", type: "project" },
-    { key: "vendor", label: "Select vendor", type: "vendor" },
-    { key: "material", label: "Select material", type: "material" },
-    { key: "quantity", label: "Quantity", type: "number" },
-    { key: "rate", label: "Rate (₹)", type: "number" },
-    { key: "date", label: "Delivery date", type: "date" },
-  ],
-};
-
-const billFlow = {
-  api: "/bills",
-  fields: [
-    {
-      key: "recipientType",
-      label: "Bill recipient",
-      type: "select",
-      options: [
-        { label: "Vendor", value: "vendor" },
-        { label: "Labor Contractor", value: "labor-contractor" },
+  /* -------------------- FLOWS -------------------- */
+  const FLOWS = {
+    project: {
+      api: "/projects",
+      fields: [
+        { key: "name", label: "Project name" },
+        { key: "client", label: "Client name" },
+        { key: "location", label: "Location" },
+        { key: "budget", label: "Budget (₹)", type: "number", optional: true },
+        { key: "startDate", label: "Start date", type: "date" },
+        { key: "endDate", label: "End date", type: "date", optional: true },
+        { key: "assignedEngineer", label: "Assigned engineer" },
       ],
     },
-    {
-      key: "vendor",
-      label: "Select vendor",
-      type: "vendor",
-      requiredIf: (d) => d.recipientType === "vendor",
+    vendor: {
+      api: "/vendors",
+      fields: [
+        { key: "name", label: "Vendor name" },
+        { key: "contactPerson", label: "Contact person", optional: true },
+        { key: "phone", label: "Phone", optional: true },
+        { key: "email", label: "Email", optional: true },
+        { key: "address", label: "Address", optional: true },
+      ],
     },
-    {
-      key: "laborContractor",
-      label: "Select labor contractor",
-      type: "labor",
-      requiredIf: (d) => d.recipientType === "labor-contractor",
+    material: {
+      api: "/materials",
+      fields: [
+        { key: "name", label: "Material name" },
+        { key: "unitType", label: "Unit type (bag, ton, truck)" },
+      ],
     },
-    {
-      key: "project",
-      label: "Select project",
-      type: "project",
-      requiredIf: (d) => d.recipientType === "labor-contractor",
+    expense: {
+      api: "/expenses",
+      fields: [
+        { key: "project", label: "Select project", type: "project" },
+        { key: "description", label: "Expense description" },
+        { key: "category", label: "Category", optional: true },
+        { key: "amount", label: "Amount (₹)", type: "number" },
+        { key: "date", label: "Expense date", type: "date" },
+        { key: "remarks", label: "Remarks", optional: true },
+      ],
     },
-    { key: "amount", label: "Amount (₹)", type: "number" },
-    { key: "billDate", label: "Bill date", type: "date" },
-    { key: "remarks", label: "Remarks", optional: true },
-  ],
-};
+    delivery: {
+      api: "/material-deliveries",
+      fields: [
+        { key: "project", label: "Select project", type: "project" },
+        { key: "vendor", label: "Select vendor", type: "vendor" },
+        { key: "material", label: "Select material", type: "material" },
+        { key: "quantity", label: "Quantity", type: "number" },
+        { key: "rate", label: "Rate (₹)", type: "number" },
+        { key: "date", label: "Delivery date", type: "date" },
+      ],
+    },
+    bill: {
+      api: "/bills",
+      fields: [
+        {
+          key: "recipientType",
+          label: "Bill recipient",
+          type: "select",
+          options: [
+            { label: "Vendor", value: "vendor" },
+            { label: "Labor Contractor", value: "labor-contractor" },
+          ],
+        },
+        {
+          key: "vendor",
+          label: "Select vendor",
+          type: "vendor",
+          requiredIf: (d) => d.recipientType === "vendor",
+        },
+        {
+          key: "laborContractor",
+          label: "Select labor contractor",
+          type: "labor",
+          requiredIf: (d) => d.recipientType === "labor-contractor",
+        },
+        {
+          key: "project",
+          label: "Select project",
+          type: "project",
+          requiredIf: (d) => d.recipientType === "labor-contractor",
+        },
+        { key: "amount", label: "Amount (₹)", type: "number" },
+        { key: "billDate", label: "Bill date", type: "date" },
+        { key: "remarks", label: "Remarks", optional: true },
+      ],
+    },
+    labor: {
+      api: "/labor-contractors",
+      fields: [{ key: "name", label: "Labor contractor name" }],
+    },
+  };
 
-const laborFlow = {
-  api: "/labor-contractors",
-  fields: [{ key: "name", label: "Labor contractor name" }],
-};
-
-const FLOWS = {
-  project: projectFlow,
-  vendor: vendorFlow,
-  material: materialFlow,
-  expense: expenseFlow,
-  delivery: deliveryFlow,
-  bill: billFlow,
-  labor: laborFlow,
-};
-
-/* ---------------------- COMPONENT ---------------------- */
-
-export default function UniversalChat() {
+  /* -------------------- STATE -------------------- */
   const [query, setQuery] = useState("");
   const [action, setAction] = useState(null);
   const [step, setStep] = useState(0);
@@ -203,107 +276,113 @@ export default function UniversalChat() {
   );
 
   return (
-    <div className="chat-shell">
-      <div className="chat-box">
-        <div className="chat-messages">
-          {messages.map((m, i) => (
-            <div key={i} className={`chat-msg ${m.from}`}>
-              {m.text}
-            </div>
-          ))}
-          <div ref={endRef} />
-        </div>
+    <>
+      <style>{styles}</style>
 
-        <div className="chat-input">
-          {!action && (
-            <>
-              <input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Type to add..."
-              />
-              {query && (
-                <div className="chat-suggestions">
-                  {suggestions.map((a) => (
-                    <div key={a.key} onClick={() => startAction(a)}>
-                      {a.label}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </>
-          )}
+      <div className="chat-shell">
+        <div className="chat-box">
+          <div className="chat-header">🤖 Smart Assistant</div>
 
-          {action && currentField && (
-            <>
-              {currentField.type === "select" && (
-                <select onChange={(e) => submitField(e.target.value)}>
-                  <option value="">Select</option>
-                  {currentField.options.map((o) => (
-                    <option key={o.value} value={o.value}>
-                      {o.label}
-                    </option>
-                  ))}
-                </select>
-              )}
+          <div className="chat-messages">
+            {messages.map((m, i) => (
+              <div key={i} className={`chat-msg ${m.from}`}>
+                {m.text}
+              </div>
+            ))}
+            <div ref={endRef} />
+          </div>
 
-              {currentField.type === "project" && (
-                <select onChange={(e) => submitField(e.target.value)}>
-                  <option value="">Select project</option>
-                  {projects.map((p) => (
-                    <option key={p._id} value={p._id}>
-                      {p.name}
-                    </option>
-                  ))}
-                </select>
-              )}
-
-              {currentField.type === "vendor" && (
-                <select onChange={(e) => submitField(e.target.value)}>
-                  <option value="">Select vendor</option>
-                  {vendors.map((v) => (
-                    <option key={v._id} value={v._id}>
-                      {v.name}
-                    </option>
-                  ))}
-                </select>
-              )}
-
-              {currentField.type === "material" && (
-                <select onChange={(e) => submitField(e.target.value)}>
-                  <option value="">Select material</option>
-                  {materials.map((m) => (
-                    <option key={m._id} value={m._id}>
-                      {m.name}
-                    </option>
-                  ))}
-                </select>
-              )}
-
-              {currentField.type === "labor" && (
-                <select onChange={(e) => submitField(e.target.value)}>
-                  <option value="">Select labor contractor</option>
-                  {laborContractors.map((l) => (
-                    <option key={l._id} value={l._id}>
-                      {l.name}
-                    </option>
-                  ))}
-                </select>
-              )}
-
-              {!currentField.type && (
+          <div className="chat-input">
+            {!action && (
+              <>
                 <input
-                  type={currentField.type || "text"}
-                  placeholder={currentField.label}
-                  onKeyDown={(e) =>
-                    e.key === "Enter" && submitField(e.target.value)
-                  }
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Type to add..."
                 />
-              )}
-            </>
-          )}
+                {query && (
+                  <div className="chat-suggestions">
+                    {suggestions.map((a) => (
+                      <div key={a.key} onClick={() => startAction(a)}>
+                        {a.label}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
+
+            {action && currentField && (
+              <>
+                {currentField.type === "select" && (
+                  <select onChange={(e) => submitField(e.target.value)}>
+                    <option value="">Select</option>
+                    {currentField.options.map((o) => (
+                      <option key={o.value} value={o.value}>
+                        {o.label}
+                      </option>
+                    ))}
+                  </select>
+                )}
+
+                {currentField.type === "project" && (
+                  <select onChange={(e) => submitField(e.target.value)}>
+                    <option value="">Select project</option>
+                    {projects.map((p) => (
+                      <option key={p._id} value={p._id}>
+                        {p.name}
+                      </option>
+                    ))}
+                  </select>
+                )}
+
+                {currentField.type === "vendor" && (
+                  <select onChange={(e) => submitField(e.target.value)}>
+                    <option value="">Select vendor</option>
+                    {vendors.map((v) => (
+                      <option key={v._id} value={v._id}>
+                        {v.name}
+                      </option>
+                    ))}
+                  </select>
+                )}
+
+                {currentField.type === "material" && (
+                  <select onChange={(e) => submitField(e.target.value)}>
+                    <option value="">Select material</option>
+                    {materials.map((m) => (
+                      <option key={m._id} value={m._id}>
+                        {m.name}
+                      </option>
+                    ))}
+                  </select>
+                )}
+
+                {currentField.type === "labor" && (
+                  <select onChange={(e) => submitField(e.target.value)}>
+                    <option value="">Select labor contractor</option>
+                    {laborContractors.map((l) => (
+                      <option key={l._id} value={l._id}>
+                        {l.name}
+                      </option>
+                    ))}
+                  </select>
+                )}
+
+                {!currentField.type && (
+                  <input
+                    type={currentField.type || "text"}
+                    placeholder={currentField.label}
+                    onKeyDown={(e) =>
+                      e.key === "Enter" && submitField(e.target.value)
+                    }
+                  />
+                )}
+              </>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

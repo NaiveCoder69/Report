@@ -41,9 +41,19 @@ const vendorFlow = {
   ],
 };
 
+const materialFlow = {
+  api: "/materials",
+  success: "✅ Material added successfully!",
+  fields: [
+    { key: "name", label: "Enter material name", type: "text", required: true },
+    { key: "unitType", label: "Enter unit type (e.g., bag, ton)", type: "text", required: true },
+  ],
+};
+
 const FLOWS = {
   project: projectFlow,
   vendor: vendorFlow,
+  material: materialFlow,
 };
 
 /* ---------------- COMPONENT ---------------- */

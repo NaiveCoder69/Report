@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
 import API from "../api";
-import "../styles/chat.css";
 
 const ACTIONS = [
   { key: "project", label: "Add Project" },

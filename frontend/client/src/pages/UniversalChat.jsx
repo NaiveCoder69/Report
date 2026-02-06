@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import API from "../api";
 
-/* ---------------- ACTIONS REGISTRY ---------------- */
+/* ---------------- ACTIONS ---------------- */
 
 const ACTIONS = [
   { key: "project", label: "Add Project" },
@@ -13,17 +13,40 @@ const ACTIONS = [
   { key: "labor", label: "Add Labor Contractor" },
 ];
 
-/* ---------------- PROJECT FLOW ---------------- */
+/* ---------------- FLOWS ---------------- */
 
-const projectFlow = [
-  { key: "name", label: "Enter project name", type: "text", required: true },
-  { key: "client", label: "Enter client name", type: "text", required: true },
-  { key: "location", label: "Enter project location", type: "text", required: true },
-  { key: "budget", label: "Enter budget (optional)", type: "number", required: false },
-  { key: "startDate", label: "Select start date", type: "date", required: true },
-  { key: "endDate", label: "Select end date (optional)", type: "date", required: false },
-  { key: "assignedEngineer", label: "Enter assigned engineer", type: "text", required: true },
-];
+const projectFlow = {
+  api: "/projects",
+  success: "✅ Project added successfully!",
+  fields: [
+    { key: "name", label: "Enter project name", type: "text", required: true },
+    { key: "client", label: "Enter client name", type: "text", required: true },
+    { key: "location", label: "Enter project location", type: "text", required: true },
+    { key: "budget", label: "Enter budget (optional)", type: "number", required: false },
+    { key: "startDate", label: "Select start date", type: "date", required: true },
+    { key: "endDate", label: "Select end date (optional)", type: "date", required: false },
+    { key: "assignedEngineer", label: "Enter assigned engineer", type: "text", required: true },
+  ],
+};
+
+const vendorFlow = {
+  api: "/vendors",
+  success: "✅ Vendor added successfully!",
+  fields: [
+    { key: "name", label: "Enter vendor name", type: "text", required: true },
+    { key: "contactPerson", label: "Enter contact person (optional)", type: "text", required: false },
+    { key: "phone", label: "Enter phone number (optional)", type: "text", required: false },
+    { key: "email", label: "Enter email (optional)", type: "email", required: false },
+    { key: "address", label: "Enter address (optional)", type: "text", required: false },
+  ],
+};
+
+const FLOWS = {
+  project: projectFlow,
+  vendor: vendorFlow,
+};
+
+/* ---------------- COMPONENT ---------------- */
 
 export default function UniversalChat() {
   const [messages, setMessages] = useState([
@@ -32,9 +55,12 @@ export default function UniversalChat() {
 
   const [input, setInput] = useState("");
   const [suggestions, setSuggestions] = useState([]);
-  const [flow, setFlow] = useState(null);
+  const [flowKey, setFlowKey] = useState(null);
   const [step, setStep] = useState(-1);
   const [formData, setFormData] = useState({});
+
+  const flow = flowKey ? FLOWS[flowKey] : null;
+  const currentField = flow?.fields[step];
 
   /* ---------------- HELPERS ---------------- */
 
@@ -47,48 +73,51 @@ export default function UniversalChat() {
   /* ---------------- AUTO SUGGEST ---------------- */
 
   useEffect(() => {
-    if (flow) return; // disable suggestions during flow
+    if (flowKey) return;
 
     if (!input.trim()) {
       setSuggestions([]);
       return;
     }
 
-    const filtered = ACTIONS.filter((a) =>
-      a.label.toLowerCase().includes(input.toLowerCase())
+    setSuggestions(
+      ACTIONS.filter((a) =>
+        a.label.toLowerCase().includes(input.toLowerCase())
+      )
     );
+  }, [input, flowKey]);
 
-    setSuggestions(filtered);
-  }, [input, flow]);
-
-  /* ---------------- START FLOW ---------------- */
+  /* ---------------- START ACTION ---------------- */
 
   const startAction = (action) => {
     addUser(action.label);
     setInput("");
     setSuggestions([]);
 
-    if (action.key === "project") {
-      setFlow(projectFlow);
-      setStep(0);
-      setFormData({});
-    } else {
-      addBot("🚧 This action will be enabled next.");
+    if (!FLOWS[action.key]) {
+      addBot("🚧 This action will be enabled soon.");
+      return;
     }
+
+    setFlowKey(action.key);
+    setStep(0);
+    setFormData({});
   };
 
-  /* ---------------- FLOW HANDLING ---------------- */
+  /* ---------------- ASK QUESTION ---------------- */
 
   useEffect(() => {
-    if (flow && step >= 0) {
-      addBot(flow[step].label);
+    if (currentField) {
+      addBot(currentField.label);
     }
   }, [step]);
 
-  const submitField = async () => {
-    const current = flow[step];
+  /* ---------------- SUBMIT FIELD ---------------- */
 
-    if (!input && current.required) {
+  const submitField = async () => {
+    if (!currentField) return;
+
+    if (!input && currentField.required) {
       addBot("❗ This field is required.");
       return;
     }
@@ -97,37 +126,37 @@ export default function UniversalChat() {
 
     const updated = {
       ...formData,
-      [current.key]: input,
+      [currentField.key]: input,
     };
 
     setFormData(updated);
     setInput("");
 
-    if (step < flow.length - 1) {
+    if (step < flow.fields.length - 1) {
       setStep(step + 1);
     } else {
-      await submitProject(updated);
+      await submitForm(updated);
     }
   };
 
-  const submitProject = async (payload) => {
+  /* ---------------- FINAL SUBMIT ---------------- */
+
+  const submitForm = async (payload) => {
     try {
-      await API.post("/projects", payload);
-      addBot("✅ Project added successfully!");
+      await API.post(flow.api, payload);
+      addBot(flow.success);
     } catch (err) {
-      addBot("❌ Failed to add project.");
+      addBot("❌ Failed to add data.");
       console.error(err);
     }
 
-    setFlow(null);
+    setFlowKey(null);
     setStep(-1);
     setFormData({});
     addBot("What do you want to do next?");
   };
 
   /* ---------------- UI ---------------- */
-
-  const currentField = flow?.[step];
 
   return (
     <div style={styles.wrapper}>
@@ -156,16 +185,12 @@ export default function UniversalChat() {
           placeholder="Type here…"
           style={styles.input}
         />
-
-        <button
-          onClick={flow ? submitField : undefined}
-          style={styles.sendBtn}
-        >
+        <button onClick={flowKey ? submitField : undefined} style={styles.sendBtn}>
           ➤
         </button>
       </div>
 
-      {!flow && suggestions.length > 0 && (
+      {!flowKey && suggestions.length > 0 && (
         <div style={styles.suggestions}>
           {suggestions.map((s) => (
             <div

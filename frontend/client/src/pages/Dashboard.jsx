@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useContext } from "react";
 import API from "../api";
 import CompanyChoiceModal from "../components/CompanyChoiceModal";
-import UniversalChat from "../pages/UniversalChat"; // 🚀 ADD THIS
 import { Card, Row, Col, Spinner, Table } from "react-bootstrap";
 import { AuthContext } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -154,20 +153,6 @@ const Dashboard = () => {
                 })}
               </Row>
 
-              {/* 🚀 NEW: UNIVERSAL CHAT WIDGET */}
-              <Row className="mb-4">
-                <Col md={12}>
-                  <Card className="dash-chat-card">
-                    <Card.Header className="dash-chat-header">
-                      <h5>💬 Universal Chat</h5>
-                      <small>Company-wide team communication</small>
-                    </Card.Header>
-                    <Card.Body style={{ height: '400px', padding: 0 }}>
-                      <UniversalChat />
-                    </Card.Body>
-                  </Card>
-                </Col>
-              </Row>
 
               {/* TABLE */}
               <Card className="dash-table-card">

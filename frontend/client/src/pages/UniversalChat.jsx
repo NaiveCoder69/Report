@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import API from "../api";
 
 export default function UniversalChat() {
-  /* -------------------- INLINE CSS -------------------- */
+  /* ---------------- INLINE CSS ---------------- */
   const styles = `
     .chat-shell {
       display: flex;
@@ -27,13 +27,14 @@ export default function UniversalChat() {
       background: #0d6efd;
       color: #fff;
       font-weight: 600;
-      font-size: 15px;
     }
     .chat-messages {
       flex: 1;
       overflow-y: auto;
       padding: 14px;
       background: #f8f9fa;
+      display: flex;
+      flex-direction: column;
     }
     .chat-msg {
       max-width: 78%;
@@ -41,19 +42,15 @@ export default function UniversalChat() {
       margin-bottom: 10px;
       border-radius: 14px;
       font-size: 14px;
-      line-height: 1.4;
-      word-break: break-word;
     }
     .chat-msg.bot {
       background: #e9ecef;
       align-self: flex-start;
-      border-bottom-left-radius: 4px;
     }
     .chat-msg.user {
       background: #0d6efd;
       color: #fff;
       align-self: flex-end;
-      border-bottom-right-radius: 4px;
     }
     .chat-input {
       padding: 12px;
@@ -61,36 +58,36 @@ export default function UniversalChat() {
       background: #fff;
     }
     .chat-input input,
-    .chat-input select {
+    .chat-input select,
+    .chat-input button {
       width: 100%;
-      padding: 10px 12px;
+      padding: 10px;
       border-radius: 10px;
       border: 1px solid #ccc;
       font-size: 14px;
-      outline: none;
     }
-    .chat-input input:focus,
-    .chat-input select:focus {
-      border-color: #0d6efd;
+    .chat-input button {
+      margin-top: 6px;
+      background: #0d6efd;
+      color: white;
+      border: none;
     }
     .chat-suggestions {
       margin-top: 6px;
       border: 1px solid #ddd;
       border-radius: 10px;
       overflow: hidden;
-      background: #fff;
     }
     .chat-suggestions div {
-      padding: 10px 12px;
+      padding: 10px;
       cursor: pointer;
-      font-size: 14px;
     }
     .chat-suggestions div:hover {
       background: #f1f1f1;
     }
   `;
 
-  /* -------------------- ACTIONS -------------------- */
+  /* ---------------- ACTIONS ---------------- */
   const ACTIONS = [
     { key: "project", label: "Add Project" },
     { key: "vendor", label: "Add Vendor" },
@@ -101,7 +98,7 @@ export default function UniversalChat() {
     { key: "labor", label: "Add Labor Contractor" },
   ];
 
-  /* -------------------- FLOWS -------------------- */
+  /* ---------------- FLOWS ---------------- */
   const FLOWS = {
     project: {
       api: "/projects",
@@ -129,14 +126,14 @@ export default function UniversalChat() {
       api: "/materials",
       fields: [
         { key: "name", label: "Material name" },
-        { key: "unitType", label: "Unit type (bag, ton, truck)" },
+        { key: "unitType", label: "Unit type" },
       ],
     },
     expense: {
       api: "/expenses",
       fields: [
         { key: "project", label: "Select project", type: "project" },
-        { key: "description", label: "Expense description" },
+        { key: "description", label: "Description" },
         { key: "category", label: "Category", optional: true },
         { key: "amount", label: "Amount (₹)", type: "number" },
         { key: "date", label: "Expense date", type: "date" },
@@ -195,11 +192,12 @@ export default function UniversalChat() {
     },
   };
 
-  /* -------------------- STATE -------------------- */
+  /* ---------------- STATE ---------------- */
   const [query, setQuery] = useState("");
   const [action, setAction] = useState(null);
   const [step, setStep] = useState(0);
   const [formData, setFormData] = useState({});
+  const [inputValue, setInputValue] = useState("");
   const [messages, setMessages] = useState([
     { from: "bot", text: "Type what you want to add 👇" },
   ]);
@@ -219,22 +217,13 @@ export default function UniversalChat() {
     API.get("/projects").then((r) => setProjects(r.data));
     API.get("/vendors").then((r) => setVendors(r.data));
     API.get("/materials").then((r) => setMaterials(r.data));
-    API.get("/labor-contractors").then((r) => setLaborContractors(r.data));
+    API.get("/labor-contractors").then((r) =>
+      setLaborContractors(r.data)
+    );
   }, []);
 
   const flow = action ? FLOWS[action] : null;
-
-  const currentField = (() => {
-    if (!flow) return null;
-    for (let i = step; i < flow.fields.length; i++) {
-      const f = flow.fields[i];
-      if (!f.requiredIf || f.requiredIf(formData)) {
-        if (i !== step) setStep(i);
-        return f;
-      }
-    }
-    return null;
-  })();
+  const currentField = flow?.fields[step];
 
   const addMsg = (from, text) =>
     setMessages((m) => [...m, { from, text }]);
@@ -243,13 +232,17 @@ export default function UniversalChat() {
     setAction(a.key);
     setStep(0);
     setFormData({});
+    setInputValue("");
     setMessages([{ from: "bot", text: a.label }]);
+    addMsg("bot", FLOWS[a.key].fields[0].label);
   };
 
-  const submitField = async (value) => {
+  const submitValue = async (value) => {
+    if (!value) return;
     const updated = { ...formData, [currentField.key]: value };
     setFormData(updated);
     addMsg("user", value);
+    setInputValue("");
 
     let next = step + 1;
     while (
@@ -268,6 +261,7 @@ export default function UniversalChat() {
       addMsg("bot", "✅ Added successfully");
       setAction(null);
       setQuery("");
+      setStep(0);
     }
   };
 
@@ -315,7 +309,9 @@ export default function UniversalChat() {
             {action && currentField && (
               <>
                 {currentField.type === "select" && (
-                  <select onChange={(e) => submitField(e.target.value)}>
+                  <select
+                    onChange={(e) => submitValue(e.target.value)}
+                  >
                     <option value="">Select</option>
                     {currentField.options.map((o) => (
                       <option key={o.value} value={o.value}>
@@ -325,58 +321,43 @@ export default function UniversalChat() {
                   </select>
                 )}
 
-                {currentField.type === "project" && (
-                  <select onChange={(e) => submitField(e.target.value)}>
-                    <option value="">Select project</option>
-                    {projects.map((p) => (
-                      <option key={p._id} value={p._id}>
-                        {p.name}
-                      </option>
-                    ))}
-                  </select>
-                )}
-
-                {currentField.type === "vendor" && (
-                  <select onChange={(e) => submitField(e.target.value)}>
-                    <option value="">Select vendor</option>
-                    {vendors.map((v) => (
-                      <option key={v._id} value={v._id}>
-                        {v.name}
-                      </option>
-                    ))}
-                  </select>
-                )}
-
-                {currentField.type === "material" && (
-                  <select onChange={(e) => submitField(e.target.value)}>
-                    <option value="">Select material</option>
-                    {materials.map((m) => (
-                      <option key={m._id} value={m._id}>
-                        {m.name}
-                      </option>
-                    ))}
-                  </select>
-                )}
-
-                {currentField.type === "labor" && (
-                  <select onChange={(e) => submitField(e.target.value)}>
-                    <option value="">Select labor contractor</option>
-                    {laborContractors.map((l) => (
-                      <option key={l._id} value={l._id}>
-                        {l.name}
+                {["project", "vendor", "material", "labor"].includes(
+                  currentField.type
+                ) && (
+                  <select
+                    onChange={(e) => submitValue(e.target.value)}
+                  >
+                    <option value="">Select</option>
+                    {(currentField.type === "project"
+                      ? projects
+                      : currentField.type === "vendor"
+                      ? vendors
+                      : currentField.type === "material"
+                      ? materials
+                      : laborContractors
+                    ).map((x) => (
+                      <option key={x._id} value={x._id}>
+                        {x.name}
                       </option>
                     ))}
                   </select>
                 )}
 
                 {!currentField.type && (
-                  <input
-                    type={currentField.type || "text"}
-                    placeholder={currentField.label}
-                    onKeyDown={(e) =>
-                      e.key === "Enter" && submitField(e.target.value)
-                    }
-                  />
+                  <>
+                    <input
+                      type={currentField.type || "text"}
+                      value={inputValue}
+                      onChange={(e) => setInputValue(e.target.value)}
+                      placeholder={currentField.label}
+                      onKeyDown={(e) =>
+                        e.key === "Enter" && submitValue(inputValue)
+                      }
+                    />
+                    <button onClick={() => submitValue(inputValue)}>
+                      Send
+                    </button>
+                  </>
                 )}
               </>
             )}

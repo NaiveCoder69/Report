@@ -1,208 +1,275 @@
 import React, { useEffect, useRef, useState } from "react";
 import API from "../api";
 
+const ACTIONS = [
+  "Add Project",
+  "Add Vendor",
+  "Add Material",
+  "Add Expense",
+  "Add Delivery",
+  "Add Bill",
+  "Add Labor Contractor",
+];
+
 export default function UniversalChat() {
-  /* ================== INLINE CSS ================== */
-  const styles = `
-    .chat-shell{display:flex;justify-content:center;padding:16px;background:#f4f6f8;min-height:100vh}
-    .chat-box{width:100%;max-width:420px;height:85vh;background:#fff;border-radius:16px;
-      box-shadow:0 10px 30px rgba(0,0,0,.08);display:flex;flex-direction:column}
-    .chat-header{padding:14px 16px;background:#0d6efd;color:#fff;font-weight:600}
-    .chat-messages{flex:1;overflow-y:auto;padding:14px;background:#f8f9fa}
-    .chat-msg{max-width:78%;padding:10px 14px;margin-bottom:10px;border-radius:14px;font-size:14px}
-    .chat-msg.bot{background:#e9ecef}
-    .chat-msg.user{background:#0d6efd;color:#fff;margin-left:auto}
-    .chat-input{padding:12px;border-top:1px solid #eee}
-    .chat-input input,.chat-input select,.chat-input button{
-      width:100%;padding:10px;border-radius:10px;border:1px solid #ccc}
-    .chat-input button{margin-top:6px;background:#0d6efd;color:#fff;border:none}
-    .chat-suggestions{margin-top:6px;border:1px solid #ddd;border-radius:10px;overflow:hidden}
-    .chat-suggestions div{padding:10px;cursor:pointer}
-    .chat-suggestions div:hover{background:#f1f1f1}
-  `;
-
-  /* ================== ACTIONS ================== */
-  const ACTIONS = [
-    { key: "project", label: "Add Project" },
-    { key: "vendor", label: "Add Vendor" },
-    { key: "material", label: "Add Material" },
-    { key: "expense", label: "Add Expense" },
-    { key: "delivery", label: "Add Delivery" },
-    { key: "bill", label: "Add Bill" },
-    { key: "labor", label: "Add Labor Contractor" },
-  ];
-
-  /* ================== FLOWS ================== */
-  const FLOWS = {
-    delivery: {
-      api: "/material-deliveries",
-      fields: [
-        { key: "project", label: "Select project", type: "project" },
-        { key: "vendor", label: "Select vendor", type: "vendor" },
-        { key: "material", label: "Select material", type: "material" },
-        { key: "quantity", label: "Quantity", type: "number" },
-        { key: "rate", label: "Rate (₹)", type: "number" },
-        { key: "date", label: "Delivery date", type: "date" },
-      ],
-    },
-    // (other flows remain same as before)
-  };
-
-  /* ================== STATE ================== */
-  const [query, setQuery] = useState("");
+  const [messages, setMessages] = useState([
+    { from: "bot", text: "👋 What do you want to do?" },
+  ]);
   const [action, setAction] = useState(null);
   const [step, setStep] = useState(0);
   const [formData, setFormData] = useState({});
-  const [inputValue, setInputValue] = useState("");
-  const [messages, setMessages] = useState([
-    { from: "bot", text: "What do you want to do?" },
-  ]);
-
-  const [projects, setProjects] = useState([]);
-  const [vendors, setVendors] = useState([]);
-  const [materials, setMaterials] = useState([]);
-  const [laborContractors, setLaborContractors] = useState([]);
+  const [input, setInput] = useState("");
+  const [query, setQuery] = useState("");
 
   const endRef = useRef(null);
 
+  /* ---------------- SCROLL (ONLY AFTER MESSAGE ADD) ---------------- */
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  useEffect(() => {
-    API.get("/projects").then(r => setProjects(r.data));
-    API.get("/vendors").then(r => setVendors(r.data));
-    API.get("/materials").then(r => setMaterials(r.data));
-    API.get("/labor-contractors").then(r => setLaborContractors(r.data));
-  }, []);
+  const addMessage = (from, text) => {
+    setMessages((prev) => [...prev, { from, text }]);
+  };
+
+  /* ---------------- FLOWS ---------------- */
+  const FLOWS = {
+    "Add Project": {
+      api: "/projects",
+      fields: [
+        { key: "name", label: "Project name" },
+        { key: "client", label: "Client name" },
+        { key: "location", label: "Location" },
+        { key: "budget", label: "Budget (optional)", optional: true },
+        { key: "startDate", label: "Start date" },
+        { key: "endDate", label: "End date (optional)", optional: true },
+        { key: "assignedEngineer", label: "Assigned engineer" },
+      ],
+    },
+
+    "Add Vendor": {
+      api: "/vendors",
+      fields: [
+        { key: "name", label: "Vendor name" },
+        { key: "contactPerson", label: "Contact person (optional)", optional: true },
+        { key: "phone", label: "Phone number (optional)", optional: true },
+        { key: "email", label: "Email (optional)", optional: true },
+        { key: "address", label: "Address (optional)", optional: true },
+      ],
+    },
+
+    "Add Material": {
+      api: "/materials",
+      fields: [
+        { key: "name", label: "Material name" },
+        { key: "unitType", label: "Unit type (bag, ton, etc.)" },
+      ],
+    },
+
+    "Add Expense": {
+      api: "/expenses",
+      fields: [
+        { key: "project", label: "Project name" },
+        { key: "description", label: "Expense description" },
+        { key: "category", label: "Category (optional)", optional: true },
+        { key: "amount", label: "Amount (₹)" },
+        { key: "date", label: "Expense date" },
+        { key: "remarks", label: "Remarks (optional)", optional: true },
+      ],
+    },
+
+    "Add Delivery": {
+      api: "/material-deliveries",
+      fields: [
+        { key: "project", label: "Project name" },
+        { key: "vendor", label: "Vendor name" },
+        { key: "material", label: "Material name" },
+        { key: "quantity", label: "Quantity" },
+        { key: "rate", label: "Rate (₹)" },
+        { key: "date", label: "Delivery date" },
+      ],
+    },
+
+    "Add Bill": {
+      api: "/bills",
+      fields: [
+        { key: "billNumber", label: "Bill number" },
+        {
+          key: "recipientType",
+          label: "Recipient type (vendor / labor-contractor)",
+        },
+        {
+          key: "vendor",
+          label: "Vendor name",
+          requiredIf: (d) => d.recipientType === "vendor",
+        },
+        {
+          key: "laborContractor",
+          label: "Labor contractor name",
+          requiredIf: (d) => d.recipientType === "labor-contractor",
+        },
+        {
+          key: "project",
+          label: "Project name",
+          requiredIf: (d) => d.recipientType === "labor-contractor",
+        },
+        { key: "amount", label: "Amount (₹)" },
+        { key: "billDate", label: "Bill date" },
+        { key: "remarks", label: "Remarks (optional)", optional: true },
+      ],
+    },
+
+    "Add Labor Contractor": {
+      api: "/labor-contractors",
+      fields: [
+        { key: "name", label: "Labor contractor name" },
+        { key: "phone", label: "Phone number (optional)", optional: true },
+        { key: "address", label: "Address (optional)", optional: true },
+      ],
+    },
+  };
 
   const flow = action ? FLOWS[action] : null;
-  const field = flow?.fields[step];
 
-  const addMsg = (from, text) =>
-    setMessages(m => [...m, { from, text }]);
+  /* ---------------- FIELD RESOLVER ---------------- */
+  const getCurrentField = () => {
+    if (!flow) return null;
 
-  const startAction = (a) => {
-    setAction(a.key);
+    for (let i = step; i < flow.fields.length; i++) {
+      const f = flow.fields[i];
+      if (!f.requiredIf || f.requiredIf(formData)) {
+        if (i !== step) setStep(i);
+        return f;
+      }
+    }
+    return null;
+  };
+
+  const currentField = getCurrentField();
+
+  /* ---------------- START ACTION ---------------- */
+  const startAction = (act) => {
+    setAction(act);
     setStep(0);
     setFormData({});
-    setMessages([{ from: "bot", text: a.label }]);
-    addMsg("bot", FLOWS[a.key].fields[0].label);
+    setInput("");
+    setQuery("");
+    addMessage("user", act);
+    addMessage("bot", FLOWS[act].fields[0].label);
   };
 
-  const handleSelect = async (id) => {
-    let list = [];
-    if (field.type === "project") list = projects;
-    if (field.type === "vendor") list = vendors;
-    if (field.type === "material") list = materials;
-    if (field.type === "labor") list = laborContractors;
+  /* ---------------- SUBMIT INPUT ---------------- */
+  const submitInput = async () => {
+    if (!currentField) return;
+    if (!input && !currentField.optional) return;
 
-    const selected = list.find(x => x._id === id);
-    if (!selected) return;
+    const value = input.trim();
+    const updated = { ...formData, [currentField.key]: value };
 
-    const updated = { ...formData, [field.key]: id };
     setFormData(updated);
-    addMsg("user", selected.name); // ✅ SHOW NAME, NOT ID
+    addMessage("user", value || "—");
+    setInput("");
 
-    proceedNext(updated);
-  };
+    let next = step + 1;
+    while (
+      next < flow.fields.length &&
+      flow.fields[next].requiredIf &&
+      !flow.fields[next].requiredIf(updated)
+    ) {
+      next++;
+    }
 
-  const submitText = async () => {
-    if (!inputValue) return;
-    const updated = { ...formData, [field.key]: inputValue };
-    setFormData(updated);
-    addMsg("user", inputValue);
-    setInputValue("");
-    proceedNext(updated);
-  };
-
-  const proceedNext = async (data) => {
-    const next = step + 1;
     if (next < flow.fields.length) {
       setStep(next);
-      addMsg("bot", flow.fields[next].label);
+      addMessage("bot", flow.fields[next].label);
     } else {
-      await API.post(flow.api, data);
-      addMsg("bot", "✅ Added successfully");
+      await API.post(flow.api, updated);
+      addMessage("bot", "✅ Added successfully");
       setAction(null);
-      setQuery("");
       setStep(0);
+      setFormData({});
     }
   };
 
-  const suggestions = ACTIONS.filter(a =>
-    a.label.toLowerCase().includes(query.toLowerCase())
+  /* ---------------- SUGGESTIONS ---------------- */
+  const suggestions = ACTIONS.filter((a) =>
+    a.toLowerCase().includes(query.toLowerCase())
   );
 
+  /* ---------------- UI ---------------- */
   return (
-    <>
-      <style>{styles}</style>
+    <div style={{ padding: 20 }}>
+      <div style={{ maxWidth: 420, margin: "auto" }}>
+        <h5 style={{ marginBottom: 10 }}>🤖 Smart Assistant</h5>
 
-      <div className="chat-shell">
-        <div className="chat-box">
-          <div className="chat-header">🤖 Smart Assistant</div>
-
-          <div className="chat-messages">
-            {messages.map((m, i) => (
-              <div key={i} className={`chat-msg ${m.from}`}>
+        <div
+          style={{
+            height: "70vh",
+            overflowY: "auto",
+            border: "1px solid #ddd",
+            padding: 10,
+            borderRadius: 10,
+            marginBottom: 10,
+          }}
+        >
+          {messages.map((m, i) => (
+            <div
+              key={i}
+              style={{
+                textAlign: m.from === "user" ? "right" : "left",
+                marginBottom: 8,
+              }}
+            >
+              <span
+                style={{
+                  display: "inline-block",
+                  padding: "8px 12px",
+                  borderRadius: 12,
+                  background: m.from === "user" ? "#0d6efd" : "#eee",
+                  color: m.from === "user" ? "#fff" : "#000",
+                }}
+              >
                 {m.text}
-              </div>
-            ))}
-            <div ref={endRef} />
-          </div>
-
-          <div className="chat-input">
-            {!action && (
-              <>
-                <input
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Type to add..."
-                />
-                {query && (
-                  <div className="chat-suggestions">
-                    {suggestions.map(a => (
-                      <div key={a.key} onClick={() => startAction(a)}>
-                        {a.label}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </>
-            )}
-
-            {action && field && (
-              <>
-                {["project","vendor","material","labor"].includes(field.type) && (
-                  <select onChange={(e) => handleSelect(e.target.value)}>
-                    <option value="">Select</option>
-                    {(field.type === "project" ? projects :
-                      field.type === "vendor" ? vendors :
-                      field.type === "material" ? materials :
-                      laborContractors
-                    ).map(x => (
-                      <option key={x._id} value={x._id}>{x.name}</option>
-                    ))}
-                  </select>
-                )}
-
-                {!field.type && (
-                  <>
-                    <input
-                      type={field.type || "text"}
-                      value={inputValue}
-                      onChange={(e) => setInputValue(e.target.value)}
-                      onKeyDown={(e) => e.key === "Enter" && submitText()}
-                      placeholder={field.label}
-                    />
-                    <button onClick={submitText}>Send</button>
-                  </>
-                )}
-              </>
-            )}
-          </div>
+              </span>
+            </div>
+          ))}
+          <div ref={endRef} />
         </div>
+
+        {!action && (
+          <>
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Type to add..."
+              style={{ width: "100%", padding: 10 }}
+            />
+            {query && (
+              <div style={{ border: "1px solid #ddd", marginTop: 4 }}>
+                {suggestions.map((a) => (
+                  <div
+                    key={a}
+                    style={{ padding: 8, cursor: "pointer" }}
+                    onClick={() => startAction(a)}
+                  >
+                    {a}
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+
+        {action && currentField && (
+          <input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && submitInput()}
+            placeholder={currentField.label}
+            style={{ width: "100%", padding: 10 }}
+          />
+        )}
       </div>
-    </>
+    </div>
   );
 }

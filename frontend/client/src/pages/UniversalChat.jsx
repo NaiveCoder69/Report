@@ -1,304 +1,300 @@
 import React, { useEffect, useRef, useState } from "react";
 import API from "../api";
 
-const ACTIONS = [
-  "Add Project",
-  "Add Vendor",
-  "Add Material",
-  "Add Expense",
-  "Add Delivery",
-  "Add Bill",
-  "Add Labor Contractor",
-];
+/* =======================
+   UNIVERSAL CHAT
+   ======================= */
 
 export default function UniversalChat() {
-  /* ---------------- CORE STATE ---------------- */
   const [messages, setMessages] = useState([
-    { from: "bot", text: "👋 What do you want to do?" },
+    { from: "bot", text: "Hi 👋 What would you like to do?" }
   ]);
-  const [activeAction, setActiveAction] = useState(null);
-  const [stepIndex, setStepIndex] = useState(0);
+
   const [input, setInput] = useState("");
+  const [currentFlow, setCurrentFlow] = useState(null);
+  const [stepIndex, setStepIndex] = useState(0);
   const [formData, setFormData] = useState({});
-  const [search, setSearch] = useState("");
+  const [dropdownOptions, setDropdownOptions] = useState([]);
+  const [inputType, setInputType] = useState("text");
 
-  /* ---------------- DROPDOWN DATA ---------------- */
-  const [projects, setProjects] = useState([]);
-  const [vendors, setVendors] = useState([]);
-  const [materials, setMaterials] = useState([]);
-  const [laborContractors, setLaborContractors] = useState([]);
-  const [bills, setBills] = useState([]);
+  const chatEndRef = useRef(null);
 
-  const bottomRef = useRef(null);
-
-  /* ---------------- FETCH MASTER DATA ---------------- */
+  /* =======================
+     SCROLL CONTROL
+     ======================= */
   useEffect(() => {
-    API.get("/projects").then(r => setProjects(r.data || []));
-    API.get("/vendors").then(r => setVendors(r.data || []));
-    API.get("/materials").then(r => setMaterials(r.data || []));
-    API.get("/labor-contractors").then(r => setLaborContractors(r.data || []));
-    API.get("/bills").then(r => setBills(r.data || []));
-  }, []);
-
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const addMsg = (from, text) =>
-    setMessages(prev => [...prev, { from, text }]);
+  /* =======================
+     ACTION DEFINITIONS
+     ======================= */
 
-  /* ---------------- AUTO BILL NUMBER ---------------- */
-  const getNextBillNumber = () => {
-    if (!bills.length) return "";
-    let max = null;
-    let base = "";
-    bills.forEach(b => {
-      const match = b.billNumber?.match(/(\d+)$/);
-      if (!match) return;
-      const num = parseInt(match[1], 10);
-      if (max === null || num > max) {
-        max = num;
-        base = b.billNumber.replace(/\d+$/, "");
-      }
-    });
-    if (max === null) return "";
-    return `${base}${String(max + 1).padStart(3, "0")}`;
-  };
-
-  /* ---------------- FLOWS ---------------- */
-  const FLOWS = {
-    "Add Bill": {
-      api: "/bills",
+  const ACTIONS = {
+    "Add Project": {
+      endpoint: "/projects",
       steps: [
-        { key: "billNumber", label: "Bill number", type: "text", auto: true },
-        {
-          key: "recipientType",
-          label: "Who is this bill for?",
-          type: "select",
-          options: [
-            { label: "Vendor", value: "vendor" },
-            { label: "Labor Contractor", value: "labor-contractor" },
-          ],
-        },
-        {
-          key: "vendor",
-          label: "Select vendor",
-          type: "select",
-          showIf: d => d.recipientType === "vendor",
-          options: vendors.map(v => ({ label: v.name, value: v._id })),
-        },
-        {
-          key: "laborContractor",
-          label: "Select labor contractor",
-          type: "select",
-          showIf: d => d.recipientType === "labor-contractor",
-          options: laborContractors.map(l => ({ label: l.name, value: l._id })),
-        },
-        {
-          key: "project",
-          label: "Select project",
-          type: "select",
-          showIf: d => d.recipientType === "labor-contractor",
-          options: projects.map(p => ({ label: p.name, value: p._id })),
-        },
-        { key: "amount", label: "Amount (₹)", type: "number" },
-        { key: "billDate", label: "Bill date", type: "date" },
-        { key: "remarks", label: "Remarks (optional)", type: "text", optional: true },
-      ],
+        { key: "name", label: "Project name", type: "text" },
+        { key: "client", label: "Client name", type: "text" },
+        { key: "location", label: "Project location", type: "text" },
+        { key: "budget", label: "Budget (₹)", type: "number", optional: true },
+        { key: "startDate", label: "Start date", type: "date" },
+        { key: "endDate", label: "End date", type: "date", optional: true },
+        { key: "assignedEngineer", label: "Assigned engineer", type: "text" }
+      ]
     },
+
+    "Add Vendor": {
+      endpoint: "/vendors",
+      steps: [
+        { key: "name", label: "Vendor name", type: "text" },
+        { key: "contactPerson", label: "Contact person", type: "text", optional: true },
+        { key: "phone", label: "Phone number", type: "text", optional: true },
+        { key: "email", label: "Email address", type: "text", optional: true },
+        { key: "address", label: "Address", type: "text", optional: true }
+      ]
+    },
+
+    "Add Material": {
+      endpoint: "/materials",
+      steps: [
+        { key: "name", label: "Material name", type: "text" },
+        { key: "unitType", label: "Unit type (bag, ton, truck)", type: "text" }
+      ]
+    },
+
+    "Add Labor Contractor": {
+      endpoint: "/labor-contractors",
+      steps: [
+        { key: "name", label: "Labor contractor name", type: "text" },
+        { key: "phone", label: "Phone number", type: "text", optional: true },
+        { key: "address", label: "Address", type: "text", optional: true }
+      ]
+    },
+
+    "Add Expense": {
+      endpoint: "/expenses",
+      steps: [
+        { key: "project", label: "Select project", type: "select", source: "/projects" },
+        { key: "description", label: "Expense description", type: "text" },
+        { key: "category", label: "Category", type: "text", optional: true },
+        { key: "amount", label: "Amount (₹)", type: "number" },
+        { key: "date", label: "Expense date", type: "date" },
+        { key: "remarks", label: "Remarks", type: "text", optional: true }
+      ]
+    },
+
+    "Add Delivery": {
+      endpoint: "/material-deliveries",
+      steps: [
+        { key: "project", label: "Select project", type: "select", source: "/projects" },
+        { key: "vendor", label: "Select vendor", type: "select", source: "/vendors" },
+        { key: "material", label: "Select material", type: "select", source: "/materials" },
+        { key: "quantity", label: "Quantity", type: "number" },
+        { key: "rate", label: "Rate (₹)", type: "number" },
+        { key: "date", label: "Delivery date", type: "date" }
+      ]
+    },
+
+    "Add Bill": {
+      endpoint: "/bills",
+      steps: [
+        { key: "billNumber", label: "Bill number (auto-filled)", type: "auto" },
+        { key: "recipientType", label: "Bill recipient type", type: "select-static", options: [
+          { label: "Vendor", value: "vendor" },
+          { label: "Labor Contractor", value: "labor-contractor" }
+        ]},
+        { key: "recipient", label: "Select recipient", type: "conditional" },
+        { key: "project", label: "Select project", type: "select", source: "/projects", dependsOn: "labor-contractor" },
+        { key: "amount", label: "Bill amount (₹)", type: "number" },
+        { key: "billDate", label: "Bill date", type: "date" },
+        { key: "remarks", label: "Remarks", type: "text", optional: true }
+      ]
+    }
   };
 
-  const flow = FLOWS[activeAction];
-  const visibleSteps = flow
-    ? flow.steps.filter(s => !s.showIf || s.showIf(formData))
-    : [];
-  const currentStep = visibleSteps[stepIndex];
+  /* =======================
+     FETCH HELPERS
+     ======================= */
 
-  /* ---------------- START ACTION ---------------- */
-  const startAction = (action) => {
-    setActiveAction(action);
+  const loadDropdown = async (source) => {
+    const res = await API.get(source);
+    return res.data.map(item => ({
+      label: item.name,
+      value: item._id
+    }));
+  };
+
+  const getNextBillNumber = async () => {
+    const res = await API.get("/bills");
+    if (!res.data.length) return "BILL-001";
+    const nums = res.data
+      .map(b => parseInt(b.billNumber?.match(/\d+$/)?.[0] || 0));
+    return `BILL-${String(Math.max(...nums) + 1).padStart(3, "0")}`;
+  };
+
+  /* =======================
+     FLOW HANDLER
+     ======================= */
+
+  const startFlow = async (action) => {
+    setCurrentFlow(action);
     setStepIndex(0);
     setFormData({});
-    setInput("");
-    setSearch("");
-    addMsg("user", action);
+    setDropdownOptions([]);
 
-    if (action === "Add Bill") {
-      const autoBill = getNextBillNumber();
-      if (autoBill) {
-        setFormData({ billNumber: autoBill });
-        addMsg("bot", `🧾 Bill number will be: ${autoBill}`);
-        addMsg("bot", visibleSteps[1].label);
-        setStepIndex(1);
-        return;
-      }
+    setMessages(m => [...m, { from: "user", text: action }]);
+
+    const step = ACTIONS[action].steps[0];
+
+    if (step.type === "auto") {
+      const billNo = await getNextBillNumber();
+      setFormData({ billNumber: billNo });
+      nextStep({ auto: billNo });
+      return;
     }
 
-    addMsg("bot", visibleSteps[0].label);
+    askStep(step);
   };
 
-  /* ---------------- SUBMIT STEP ---------------- */
-  const submitValue = async (value) => {
-    const step = currentStep;
-    const updated = { ...formData, [step.key]: value };
+  const askStep = async (step) => {
+    setMessages(m => [...m, { from: "bot", text: step.label }]);
 
-    setFormData(updated);
-    addMsg(
-      "user",
-      step.type === "select"
-        ? step.options.find(o => o.value === value)?.label
-        : value || "—"
-    );
-    setInput("");
-
-    if (stepIndex + 1 < visibleSteps.length) {
-      setStepIndex(stepIndex + 1);
-      addMsg("bot", visibleSteps[stepIndex + 1].label);
+    if (step.type === "select") {
+      const options = await loadDropdown(step.source);
+      setDropdownOptions(options);
+      setInputType("select");
+    } else if (step.type === "select-static") {
+      setDropdownOptions(step.options);
+      setInputType("select");
     } else {
-      await API.post(flow.api, updated);
-      addMsg("bot", "✅ Saved successfully");
-      setActiveAction(null);
-      setStepIndex(0);
-      setFormData({});
+      setDropdownOptions([]);
+      setInputType(step.type);
     }
   };
 
-  /* ---------------- UI ---------------- */
+  const nextStep = async (valueObj) => {
+    const flow = ACTIONS[currentFlow];
+    const step = flow.steps[stepIndex];
+
+    setFormData(prev => ({ ...prev, ...valueObj }));
+
+    const nextIndex = stepIndex + 1;
+
+    if (nextIndex >= flow.steps.length) {
+      await API.post(flow.endpoint, { ...formData, ...valueObj });
+      setMessages(m => [...m, { from: "bot", text: "✅ Done successfully!" }]);
+      setCurrentFlow(null);
+      setInput("");
+      return;
+    }
+
+    setStepIndex(nextIndex);
+    const nextStepDef = flow.steps[nextIndex];
+
+    if (nextStepDef.type === "conditional") {
+      if (valueObj.recipientType === "vendor") {
+        const vendors = await loadDropdown("/vendors");
+        setDropdownOptions(vendors);
+        setInputType("select");
+        setMessages(m => [...m, { from: "bot", text: "Select vendor" }]);
+      } else {
+        const labors = await loadDropdown("/labor-contractors");
+        setDropdownOptions(labors);
+        setInputType("select");
+        setMessages(m => [...m, { from: "bot", text: "Select labor contractor" }]);
+      }
+      return;
+    }
+
+    askStep(nextStepDef);
+  };
+
+  /* =======================
+     SUBMIT HANDLER
+     ======================= */
+
+  const handleSubmit = async () => {
+    if (!input && inputType !== "select") return;
+
+    setMessages(m => [...m, { from: "user", text: input }]);
+
+    const key = ACTIONS[currentFlow].steps[stepIndex].key;
+    await nextStep({ [key]: input });
+
+    setInput("");
+  };
+
+  /* =======================
+     RENDER
+     ======================= */
+
   return (
-    <div style={styles.wrapper}>
+    <div style={styles.shell}>
       <div style={styles.chatBox}>
-        <div style={styles.header}>💬 Smart Assistant</div>
-
-        <div style={styles.messages}>
-          {messages.map((m, i) => (
-            <div
-              key={i}
-              style={{
-                ...styles.msg,
-                alignSelf: m.from === "user" ? "flex-end" : "flex-start",
-                background: m.from === "user" ? "#2563eb" : "#f1f5f9",
-                color: m.from === "user" ? "#fff" : "#000",
-              }}
-            >
-              {m.text}
-            </div>
-          ))}
-          <div ref={bottomRef} />
-        </div>
-
-        {!activeAction && (
-          <div style={styles.inputBar}>
-            <input
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              placeholder="Type to add…"
-              style={styles.input}
-            />
-            <div style={styles.suggestions}>
-              {ACTIONS.filter(a =>
-                a.toLowerCase().includes(search.toLowerCase())
-              ).map(a => (
-                <div
-                  key={a}
-                  style={styles.suggestion}
-                  onClick={() => startAction(a)}
-                >
-                  {a}
-                </div>
-              ))}
-            </div>
+        {messages.map((m, i) => (
+          <div key={i} style={m.from === "bot" ? styles.bot : styles.user}>
+            {m.text}
           </div>
-        )}
-
-        {activeAction && currentStep && (
-          <div style={styles.inputBar}>
-            {currentStep.type === "select" ? (
-              <select
-                style={styles.input}
-                defaultValue=""
-                onChange={e => submitValue(e.target.value)}
-              >
-                <option value="">Select…</option>
-                {currentStep.options.map(o => (
-                  <option key={o.value} value={o.value}>{o.label}</option>
-                ))}
-              </select>
-            ) : (
-              <input
-                type={currentStep.type}
-                value={input}
-                onChange={e => setInput(e.target.value)}
-                onKeyDown={e => e.key === "Enter" && submitValue(input)}
-                placeholder={currentStep.label}
-                style={styles.input}
-              />
-            )}
-          </div>
-        )}
+        ))}
+        <div ref={chatEndRef} />
       </div>
+
+      {!currentFlow && (
+        <div style={styles.actions}>
+          {Object.keys(ACTIONS).map(a => (
+            <button key={a} style={styles.actionBtn} onClick={() => startFlow(a)}>
+              {a}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {currentFlow && (
+        <div style={styles.inputArea}>
+          {inputType === "select" && (
+            <select
+              style={styles.select}
+              onChange={e => {
+                setMessages(m => [...m, { from: "user", text: e.target.options[e.target.selectedIndex].text }]);
+                nextStep({ [ACTIONS[currentFlow].steps[stepIndex].key]: e.target.value });
+              }}
+              defaultValue=""
+            >
+              <option value="" disabled>Select</option>
+              {dropdownOptions.map(o => (
+                <option key={o.value} value={o.value}>{o.label}</option>
+              ))}
+            </select>
+          )}
+
+          {inputType !== "select" && (
+            <input
+              style={styles.input}
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && handleSubmit()}
+              placeholder="Type here..."
+            />
+          )}
+        </div>
+      )}
     </div>
   );
 }
 
-/* ---------------- STYLES ---------------- */
+/* =======================
+   STYLES
+   ======================= */
+
 const styles = {
-  wrapper: {
-    display: "flex",
-    justifyContent: "center",
-    padding: 20,
-  },
-  chatBox: {
-    width: 420,
-    height: "80vh",
-    background: "#fff",
-    borderRadius: 18,
-    boxShadow: "0 20px 50px rgba(0,0,0,0.15)",
-    display: "flex",
-    flexDirection: "column",
-  },
-  header: {
-    padding: 16,
-    background: "linear-gradient(135deg,#2563eb,#1e40af)",
-    color: "#fff",
-    fontWeight: 600,
-    borderTopLeftRadius: 18,
-    borderTopRightRadius: 18,
-  },
-  messages: {
-    flex: 1,
-    padding: 12,
-    display: "flex",
-    flexDirection: "column",
-    gap: 8,
-    overflowY: "auto",
-  },
-  msg: {
-    padding: "8px 12px",
-    borderRadius: 12,
-    maxWidth: "75%",
-    fontSize: 14,
-  },
-  inputBar: {
-    padding: 12,
-    borderTop: "1px solid #e5e7eb",
-  },
-  input: {
-    width: "100%",
-    padding: 10,
-    borderRadius: 10,
-    border: "1px solid #cbd5f5",
-    outline: "none",
-  },
-  suggestions: {
-    marginTop: 6,
-    display: "flex",
-    flexDirection: "column",
-    gap: 4,
-  },
-  suggestion: {
-    padding: 8,
-    borderRadius: 8,
-    background: "#f1f5f9",
-    cursor: "pointer",
-  },
+  shell: { height: "100%", display: "flex", flexDirection: "column" },
+  chatBox: { flex: 1, padding: 12, overflowY: "auto", background: "#f5f7fb" },
+  bot: { background: "#fff", padding: 10, borderRadius: 10, marginBottom: 6, maxWidth: "70%" },
+  user: { background: "#2563eb", color: "#fff", padding: 10, borderRadius: 10, marginBottom: 6, marginLeft: "auto", maxWidth: "70%" },
+  actions: { display: "flex", flexWrap: "wrap", gap: 8, padding: 8 },
+  actionBtn: { padding: "6px 12px", borderRadius: 8, border: "1px solid #ddd", background: "#fff", cursor: "pointer" },
+  inputArea: { padding: 8, borderTop: "1px solid #ddd" },
+  input: { width: "100%", padding: 10, borderRadius: 8, border: "1px solid #ccc" },
+  select: { width: "100%", padding: 10, borderRadius: 8 }
 };

@@ -12,7 +12,6 @@ const ACTIONS = [
 ];
 
 export default function UniversalChat() {
-  /* ---------------- CORE STATE ---------------- */
   const [messages, setMessages] = useState([
     { from: "bot", text: "👋 What do you want to do?" },
   ]);
@@ -22,7 +21,6 @@ export default function UniversalChat() {
   const [formData, setFormData] = useState({});
   const [search, setSearch] = useState("");
 
-  /* ---------------- DROPDOWN DATA ---------------- */
   const [projects, setProjects] = useState([]);
   const [vendors, setVendors] = useState([]);
   const [materials, setMaterials] = useState([]);
@@ -31,7 +29,6 @@ export default function UniversalChat() {
 
   const bottomRef = useRef(null);
 
-  /* ---------------- FETCH MASTER DATA ---------------- */
   useEffect(() => {
     API.get("/projects").then(r => setProjects(r.data || []));
     API.get("/vendors").then(r => setVendors(r.data || []));
@@ -47,7 +44,7 @@ export default function UniversalChat() {
   const addMsg = (from, text) =>
     setMessages(prev => [...prev, { from, text }]);
 
-  /* ---------------- AUTO BILL NUMBER ---------------- */
+  /* ---------------- BILL NUMBER (UNCHANGED) ---------------- */
   const getNextBillNumber = () => {
     if (!bills.length) return "";
     let max = null;
@@ -67,6 +64,21 @@ export default function UniversalChat() {
 
   /* ---------------- FLOWS ---------------- */
   const FLOWS = {
+    /* ✅ ADD PROJECT */
+    "Add Project": {
+      api: "/projects",
+      steps: [
+        { key: "name", label: "Project name", type: "text" },
+        { key: "client", label: "Client", type: "text" },
+        { key: "location", label: "Location", type: "text" },
+        { key: "budget", label: "Budget (optional)", type: "number", optional: true },
+        { key: "startDate", label: "Start date", type: "date" },
+        { key: "endDate", label: "End date (optional)", type: "date", optional: true },
+        { key: "assignedEngineer", label: "Assigned engineer", type: "text" },
+      ],
+    },
+
+    /* 🔒 ADD BILL (UNCHANGED) */
     "Add Bill": {
       api: "/bills",
       steps: [
@@ -143,12 +155,7 @@ export default function UniversalChat() {
     const updated = { ...formData, [step.key]: value };
 
     setFormData(updated);
-    addMsg(
-      "user",
-      step.type === "select"
-        ? step.options.find(o => o.value === value)?.label
-        : value || "—"
-    );
+    addMsg("user", value || "—");
     setInput("");
 
     if (stepIndex + 1 < visibleSteps.length) {
@@ -212,27 +219,14 @@ export default function UniversalChat() {
 
         {activeAction && currentStep && (
           <div style={styles.inputBar}>
-            {currentStep.type === "select" ? (
-              <select
-                style={styles.input}
-                defaultValue=""
-                onChange={e => submitValue(e.target.value)}
-              >
-                <option value="">Select…</option>
-                {currentStep.options.map(o => (
-                  <option key={o.value} value={o.value}>{o.label}</option>
-                ))}
-              </select>
-            ) : (
-              <input
-                type={currentStep.type}
-                value={input}
-                onChange={e => setInput(e.target.value)}
-                onKeyDown={e => e.key === "Enter" && submitValue(input)}
-                placeholder={currentStep.label}
-                style={styles.input}
-              />
-            )}
+            <input
+              type={currentStep.type}
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && submitValue(input)}
+              placeholder={currentStep.label}
+              style={styles.input}
+            />
           </div>
         )}
       </div>
@@ -240,13 +234,8 @@ export default function UniversalChat() {
   );
 }
 
-/* ---------------- STYLES ---------------- */
 const styles = {
-  wrapper: {
-    display: "flex",
-    justifyContent: "center",
-    padding: 20,
-  },
+  wrapper: { display: "flex", justifyContent: "center", padding: 20 },
   chatBox: {
     width: 420,
     height: "80vh",
@@ -261,8 +250,6 @@ const styles = {
     background: "linear-gradient(135deg,#2563eb,#1e40af)",
     color: "#fff",
     fontWeight: 600,
-    borderTopLeftRadius: 18,
-    borderTopRightRadius: 18,
   },
   messages: {
     flex: 1,
@@ -278,23 +265,14 @@ const styles = {
     maxWidth: "75%",
     fontSize: 14,
   },
-  inputBar: {
-    padding: 12,
-    borderTop: "1px solid #e5e7eb",
-  },
+  inputBar: { padding: 12, borderTop: "1px solid #e5e7eb" },
   input: {
     width: "100%",
     padding: 10,
     borderRadius: 10,
     border: "1px solid #cbd5f5",
-    outline: "none",
   },
-  suggestions: {
-    marginTop: 6,
-    display: "flex",
-    flexDirection: "column",
-    gap: 4,
-  },
+  suggestions: { marginTop: 6, display: "flex", flexDirection: "column", gap: 4 },
   suggestion: {
     padding: 8,
     borderRadius: 8,

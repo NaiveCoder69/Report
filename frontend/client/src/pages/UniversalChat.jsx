@@ -4,14 +4,12 @@ import API from "../api";
 const ACTIONS = [
   "Add Project",
   "Add Vendor",
-  "Add Material",
-  "Add Expense",
-  "Add Delivery",
   "Add Bill",
-  "Add Labor Contractor",
 ];
 
 export default function UniversalChat() {
+
+  /* ---------------- CORE STATE ---------------- */
   const [messages, setMessages] = useState([
     { from: "bot", text: "👋 What do you want to do?" },
   ]);
@@ -21,18 +19,18 @@ export default function UniversalChat() {
   const [formData, setFormData] = useState({});
   const [search, setSearch] = useState("");
 
+  /* ---------------- MASTER DATA ---------------- */
   const [projects, setProjects] = useState([]);
   const [vendors, setVendors] = useState([]);
-  const [materials, setMaterials] = useState([]);
   const [laborContractors, setLaborContractors] = useState([]);
   const [bills, setBills] = useState([]);
 
   const bottomRef = useRef(null);
 
+  /* ---------------- FETCH DATA ---------------- */
   useEffect(() => {
     API.get("/projects").then(r => setProjects(r.data || []));
     API.get("/vendors").then(r => setVendors(r.data || []));
-    API.get("/materials").then(r => setMaterials(r.data || []));
     API.get("/labor-contractors").then(r => setLaborContractors(r.data || []));
     API.get("/bills").then(r => setBills(r.data || []));
   }, []);
@@ -44,11 +42,12 @@ export default function UniversalChat() {
   const addMsg = (from, text) =>
     setMessages(prev => [...prev, { from, text }]);
 
-  /* ---------------- BILL NUMBER (UNCHANGED) ---------------- */
+  /* ---------------- AUTO BILL NUMBER ---------------- */
   const getNextBillNumber = () => {
     if (!bills.length) return "";
     let max = null;
     let base = "";
+
     bills.forEach(b => {
       const match = b.billNumber?.match(/(\d+)$/);
       if (!match) return;
@@ -58,18 +57,20 @@ export default function UniversalChat() {
         base = b.billNumber.replace(/\d+$/, "");
       }
     });
+
     if (max === null) return "";
     return `${base}${String(max + 1).padStart(3, "0")}`;
   };
 
   /* ---------------- FLOWS ---------------- */
   const FLOWS = {
-    /* ✅ ADD PROJECT */
+
+    /* ---------- PROJECT ---------- */
     "Add Project": {
       api: "/projects",
       steps: [
         { key: "name", label: "Project name", type: "text" },
-        { key: "client", label: "Client", type: "text" },
+        { key: "client", label: "Client name", type: "text" },
         { key: "location", label: "Location", type: "text" },
         { key: "budget", label: "Budget (optional)", type: "number", optional: true },
         { key: "startDate", label: "Start date", type: "date" },
@@ -78,7 +79,19 @@ export default function UniversalChat() {
       ],
     },
 
-    /* 🔒 ADD BILL (UNCHANGED) */
+    /* ---------- VENDOR ---------- */
+    "Add Vendor": {
+      api: "/vendors",
+      steps: [
+        { key: "name", label: "Vendor name", type: "text" },
+        { key: "contactPerson", label: "Contact person", type: "text" },
+        { key: "phone", label: "Phone number", type: "text" },
+        { key: "email", label: "Email address", type: "text" },
+        { key: "address", label: "Address", type: "text" },
+      ],
+    },
+
+    /* ---------- BILL ---------- */
     "Add Bill": {
       api: "/bills",
       steps: [
@@ -124,6 +137,7 @@ export default function UniversalChat() {
   const visibleSteps = flow
     ? flow.steps.filter(s => !s.showIf || s.showIf(formData))
     : [];
+
   const currentStep = visibleSteps[stepIndex];
 
   /* ---------------- START ACTION ---------------- */
@@ -133,6 +147,7 @@ export default function UniversalChat() {
     setFormData({});
     setInput("");
     setSearch("");
+
     addMsg("user", action);
 
     if (action === "Add Bill") {
@@ -151,11 +166,18 @@ export default function UniversalChat() {
 
   /* ---------------- SUBMIT STEP ---------------- */
   const submitValue = async (value) => {
-    const step = currentStep;
-    const updated = { ...formData, [step.key]: value };
+    if (!currentStep) return;
 
+    const updated = { ...formData, [currentStep.key]: value };
     setFormData(updated);
-    addMsg("user", value || "—");
+
+    addMsg(
+      "user",
+      currentStep.type === "select"
+        ? currentStep.options.find(o => o.value === value)?.label
+        : value || "—"
+    );
+
     setInput("");
 
     if (stepIndex + 1 < visibleSteps.length) {
@@ -164,13 +186,12 @@ export default function UniversalChat() {
     } else {
       await API.post(flow.api, updated);
 
-addMsg("bot", `✅ ${activeAction} completed successfully`);
-addMsg("bot", "You can start another task anytime 👍");
+      addMsg("bot", `✅ ${activeAction} completed successfully`);
+      addMsg("bot", "You can start another task anytime 👍");
 
-setActiveAction(null);
-setStepIndex(0);
-setFormData({});
-
+      setActiveAction(null);
+      setStepIndex(0);
+      setFormData({});
     }
   };
 
@@ -223,14 +244,27 @@ setFormData({});
 
         {activeAction && currentStep && (
           <div style={styles.inputBar}>
-            <input
-              type={currentStep.type}
-              value={input}
-              onChange={e => setInput(e.target.value)}
-              onKeyDown={e => e.key === "Enter" && submitValue(input)}
-              placeholder={currentStep.label}
-              style={styles.input}
-            />
+            {currentStep.type === "select" ? (
+              <select
+                style={styles.input}
+                defaultValue=""
+                onChange={e => submitValue(e.target.value)}
+              >
+                <option value="">Select…</option>
+                {currentStep.options.map(o => (
+                  <option key={o.value} value={o.value}>{o.label}</option>
+                ))}
+              </select>
+            ) : (
+              <input
+                type={currentStep.type}
+                value={input}
+                onChange={e => setInput(e.target.value)}
+                onKeyDown={e => e.key === "Enter" && submitValue(input)}
+                placeholder={currentStep.label}
+                style={styles.input}
+              />
+            )}
           </div>
         )}
       </div>
@@ -238,6 +272,7 @@ setFormData({});
   );
 }
 
+/* ---------------- STYLES ---------------- */
 const styles = {
   wrapper: { display: "flex", justifyContent: "center", padding: 20 },
   chatBox: {
@@ -254,33 +289,13 @@ const styles = {
     background: "linear-gradient(135deg,#2563eb,#1e40af)",
     color: "#fff",
     fontWeight: 600,
+    borderTopLeftRadius: 18,
+    borderTopRightRadius: 18,
   },
-  messages: {
-    flex: 1,
-    padding: 12,
-    display: "flex",
-    flexDirection: "column",
-    gap: 8,
-    overflowY: "auto",
-  },
-  msg: {
-    padding: "8px 12px",
-    borderRadius: 12,
-    maxWidth: "75%",
-    fontSize: 14,
-  },
+  messages: { flex: 1, padding: 12, display: "flex", flexDirection: "column", gap: 8, overflowY: "auto" },
+  msg: { padding: "8px 12px", borderRadius: 12, maxWidth: "75%", fontSize: 14 },
   inputBar: { padding: 12, borderTop: "1px solid #e5e7eb" },
-  input: {
-    width: "100%",
-    padding: 10,
-    borderRadius: 10,
-    border: "1px solid #cbd5f5",
-  },
+  input: { width: "100%", padding: 10, borderRadius: 10, border: "1px solid #cbd5f5" },
   suggestions: { marginTop: 6, display: "flex", flexDirection: "column", gap: 4 },
-  suggestion: {
-    padding: 8,
-    borderRadius: 8,
-    background: "#f1f5f9",
-    cursor: "pointer",
-  },
+  suggestion: { padding: 8, borderRadius: 8, background: "#f1f5f9", cursor: "pointer" },
 };

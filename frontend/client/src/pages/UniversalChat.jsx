@@ -163,10 +163,14 @@ export default function UniversalChat() {
       addMsg("bot", visibleSteps[stepIndex + 1].label);
     } else {
       await API.post(flow.api, updated);
-      addMsg("bot", "✅ Saved successfully");
-      setActiveAction(null);
-      setStepIndex(0);
-      setFormData({});
+
+addMsg("bot", `✅ ${activeAction} completed successfully`);
+addMsg("bot", "You can start another task anytime 👍");
+
+setActiveAction(null);
+setStepIndex(0);
+setFormData({});
+
     }
   };
 
